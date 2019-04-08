@@ -5,12 +5,24 @@
 .row-number {
     display: inline-block;
     margin-right: 1em;
+    font-feature-settings: 'tnum';
 }
-.row-jump {
+
+tr td:last-of-type, tr td:nth-last-child(2), tr:not(:first-of-type) th:last-of-type, tr:first-of-type th { 
+    border: none;
+}
+
+tr td:last-of-type {
+    cursor: pointer;
+}
+
+tr td:last-of-type:hover {
+    
 }
 
 .highlight-row {
-    background-color: #ddd;
+    opacity: .5;
+    cursor: grabbing;
 }
 
 .bottom-row-insert {

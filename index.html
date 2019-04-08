@@ -11,63 +11,65 @@
 </head>
 
 <body>
+  <input id="file-name" placeholder="File name">
+  <input id="file-path" placeholder="File path" readonly>
+  <button id="choose-file" type="button" class="btn btn-primary">Open File</button>
   <table id="main-table" class="table table-bordered ">
     <thead>
       <tr>
-        <th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>
-        <th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>
-        <th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>
+        <!--
+
+          <th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>
+          <th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>
+          <th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>
+        -->
         <th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>
 
       </tr>
       <tr>
-        <th scope="col" contenteditable>Title</th>
-        <th scope="col" contenteditable>Summary</th>
-        <th scope="col" contenteditable>Note</th>
-        <th scope="col" contenteditable>Access Level</th>
-        <th rowspan="2">Row</th>
-        <th rowspan="2">Delete</th>
+        <!--
+
+          <th scope="col" contenteditable>Title</th>
+          <th scope="col" contenteditable>Summary</th>
+          <th scope="col" contenteditable>Note</th>
+        -->
+        <th id="first-header" scope="col" contenteditable>First Header</th>
+        <th colspan="2" rowspan="2"></th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td contenteditable>Quick Order</td>
-        <td contenteditable>Quick order &lt;123456&gt;</td>
-        <td contenteditable>Member ordered some stuff</td>
-        <td contenteditable>Everyone</td>
-        <td class="row-number-cell">
-          <!--
-            <button type="button" class="btn btn-secondary btn-sm m" onclick="moveRowTo(this, 'UP');">Up</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="moveRowTo(this, 'DOWN');">Down</button>
-            <br>
-            <input type="number">
-            <button type="button" class="btn btn-primary btn-sm" onclick="moveRowTo(this, this.previousElementSibling.value)">Move To</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="moveRowTo(this, 'UP');"><i class="fas fa-caret-up"></i></button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="moveRowTo(this, 'DOWN');"><i class="fas fa-caret-down"></i></button>
-          -->
-          <div class="row-number">1</div>
-          <button onmousedown="highlightRow(this);" type="button" class="btn btn-secondary btn-sm">Move</button>
+      <!--
 
-        </td>
-        <td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>
-      </tr>
-      <tr>
-        <td contenteditable>General Note</td>
-        <td contenteditable>Member called to ...</td>
-        <td contenteditable>Member called in to do something or other</td>
-        <td contenteditable>TL, Manager</td>
-        <td>
-            <div class="row-number">2</div>
+        <tr draggable="true">
+          <td contenteditable>Quick Order</td>
+          <td contenteditable>Quick order &lt;123456&gt;</td>
+          <td contenteditable>Member ordered some stuff</td>
+          <td contenteditable>Everyone</td>
+          <td class="row-number-cell">
+            <div class="row-number">1</div>
             <button onmousedown="highlightRow(this);" type="button" class="btn btn-secondary btn-sm">Move</button>
-
-        </td>
-        <td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>
-      </tr>
+          </td>
+          <td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>
+        </tr>
+        <tr draggable="true">
+          <td contenteditable>General Note</td>
+          <td contenteditable>Member called to ...</td>
+          <td contenteditable>Member called in to do something or other</td>
+          <td contenteditable>TL, Manager</td>
+          <td>
+              <div class="row-number">2</div>
+              <button onmousedown="highlightRow(this);" type="button" class="btn btn-secondary btn-sm">Move</button>
+  
+          </td>
+          <td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>
+        </tr>
+      -->
     </tbody>
   </table>
   <button id="add-new-row" type="button" class="btn btn-primary btn-lg btn-block">+</button>
   <button id="add-new-col" type="button" class="btn btn-primary btn-lg btn-block">+</button>
   <button id="save-updates" type="button" class="btn btn-secondary btn-lg btn-block">Save Data</button>
+  <button id="save-as" type="button" class="btn btn-secondary btn-lg btn-block">Save As</button>
 
   <script>
     // You can also require other files to run in this process
@@ -78,7 +80,7 @@
     function deleteCol(deleteBtn) {
       const thisTableCell = deleteBtn.parentElement;
       const siblingCells = thisTableCell.parentElement.children;
-      if (siblingCells.length > 3) {
+      if (siblingCells.length > 1) {
         const indexOfCol = Array.from(siblingCells).indexOf(thisTableCell);
         const rows = Array.from(document.querySelector('TABLE').querySelectorAll('TR'));
         rows.forEach(row => {
@@ -107,24 +109,22 @@
     };
 
     function highlightRow(btn) {
-      const movingRow = btn.parentElement.parentElement;
+      const movingRow = btn.parentElement;
       const rowIndex = Array.from(tableBody.querySelectorAll('TR')).indexOf(movingRow);
-      movingRow.draggable = 'true';
+      //movingRow.draggable = 'true';
       movingRow.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData("text/plain", rowIndex);
       });
 
-
-
       movingRow.classList.add('highlight-row');
       movingRow.addEventListener('dragend', (e) => {
+        let index = 0;
         for (let i  of document.querySelectorAll('TR')) {
           i.classList.remove('bottom-row-insert');
           i.classList.remove('highlight-row');
+          i.querySelector('.row-number') ? i.querySelector('.row-number').innerHTML = ++ index : null;
         }
       });
-
-
     };
 
     function removeHighlight(btn) {
@@ -140,7 +140,17 @@
       const row = e.target.closest('TR');
       row.classList.add('bottom-row-insert');
     });
-
+    
+    tableBody.addEventListener('dragleave', (e) => {
+      const row = e.target.closest('TR');
+      row.classList.remove('bottom-row-insert');
+    });
+    
+    tableBody.addEventListener('drop', (e) => {
+      const rowIndex = e.dataTransfer.getData('text/plain');
+      e.target.closest('TR').insertAdjacentElement('afterend', tableBody.querySelectorAll('TR')[rowIndex]);
+    });
+    
     document.querySelector('THEAD').querySelector('TR:last-of-type').addEventListener('dragover', (e) => {
       e.preventDefault();
       const row = e.target.closest('TR');
@@ -156,18 +166,6 @@
     document.querySelector('THEAD').querySelector('TR:last-of-type').addEventListener('drop', (e) => {
       const rowIndex = e.dataTransfer.getData('text/plain');
       tableBody.insertAdjacentElement('afterbegin', tableBody.querySelectorAll('TR')[rowIndex]);
-    });
-
-    tableBody.addEventListener('dragleave', (e) => {
-      const row = e.target.closest('TR');
-      row.classList.remove('bottom-row-insert');
-    });
-
-    tableBody.addEventListener('drop', (e) => {
-      //e.target.closest('TR')
-      //e.preventDefault();
-      const rowIndex = e.dataTransfer.getData('text/plain');
-      e.target.closest('TR').insertAdjacentElement('afterend', tableBody.querySelectorAll('TR')[rowIndex]);
     });
 
 
