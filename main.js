@@ -41,16 +41,9 @@ function openPreviewWin () {
     }
   })
 
-  console.log(44)
-
-  previewWin.once('ready-to-show', () => {
-    console.log('ready to show')
-  })
-
-  /*previewWin.on('browser-window-created', function() {
-    console.log('the thing went off')
+  previewWin.webContents.once('dom-ready', () => {
     mainWindow.send('request-json-preview')
-  })*/
+  })
 
   // and load the index.html of the app.
   previewWin.loadFile('./views/previewWin.html')
@@ -68,7 +61,6 @@ function openPreviewWin () {
 
 ipcMain.on('json-data', (e, jsonData) => {
   previewWin.send('json-data', jsonData);
-  console.log(61, jsonData);
 })
 
 const template = [
