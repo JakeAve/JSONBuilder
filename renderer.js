@@ -10,7 +10,7 @@ function convertToJSON(table) {
         })
     }
     const arrayOfData = rows.map(row => new JSONObject(headers, Array.from(row.querySelectorAll('TH, TD'))));
-    console.log(JSON.stringify(arrayOfData, null, 4));
+    // console.log(JSON.stringify(arrayOfData, null, 4));
     return JSON.stringify(arrayOfData, null, 4)
 };
 
@@ -29,10 +29,12 @@ function addNewRow(content = []) {
         newRow.innerHTML += `<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>`
     newRow.innerHTML += `<td onmousedown="highlightRow(this);"><div class="row-number">${rows.length - 1}</div><i class="fas fa-ellipsis-v"></i></td>`;
     document.querySelector('TBODY').appendChild(newRow);
-    saveTable();
 };
 
-document.querySelector('#add-new-row').addEventListener('click', () => {addNewRow()});
+document.querySelector('#add-new-row').addEventListener('click', () => {
+    addNewRow();
+    saveTable();
+});
 
 function addNewCol(content = '') {
     const rows = Array.from(document.querySelector('TABLE').querySelectorAll('TR'));
@@ -45,38 +47,49 @@ function addNewCol(content = '') {
         else {
             newCell.contentEditable = true;
             newCell.innerHTML = content === '' ? `Col${numberOfCols} Row${index - 1}` : content;
-            console.log(content);
         }
         row.children[numberOfCols - 1].insertAdjacentElement('afterend', newCell);
     })
-    saveTable();
 };
 
-document.querySelector('#add-new-col').addEventListener('click', () => {addNewCol()});
+document.querySelector('#add-new-col').addEventListener('click', () => {
+    addNewCol();
+    saveTable();
+});
 
-const changesToTable = [];
-var currentPosInChangesToTable = 0;
+var changesToTable = [];
+var currentPosInChangesToTable = -1;
 function saveTable() {
     changesToTable.push(convertToJSON(document.querySelector('TABLE')));
-    currentPosInChangesToTable ++;
+    currentPosInChangesToTable !== changesToTable.length - 1 ? currentPosInChangesToTable = changesToTable.length - 1 : currentPosInChangesToTable ++;
+    console.log('save table', currentPosInChangesToTable, changesToTable.length);
+    //console.log(changesToTable);
+
     //console.log(changesToTable, currentPosInChangesToTable);
 };
+saveTable();
 
 function undoTableChange() {
-    document.querySelector('TABLE').innerHTML = changesToTable[currentPosInChangesToTable --];
+    
+    //currentPosInChangesToTable --;
+    console.log('undo table', currentPosInChangesToTable, changesToTable.length);
+    currentPosInChangesToTable > 0 ? compileDataForTable(changesToTable[-- currentPosInChangesToTable]) : null;
 }
 
 function redoTableChange() {
-    document.querySelector('TABLE').innerHTML = changesToTable[currentPosInChangesToTable --];
+    
+    //currentPosInChangesToTable ++;
+    console.log('redo table', currentPosInChangesToTable, changesToTable.length);
+    currentPosInChangesToTable < changesToTable.length - 1 ? compileDataForTable(changesToTable[++ currentPosInChangesToTable]) : null;
 }
 
-const { remote } = require('electron')
+const { remote, ipcRenderer } = require('electron')
 const { Menu, MenuItem, dialog } = remote
 const fs = remote.require('fs')
 
 const menu = new Menu()
-menu.append(new MenuItem({ label: 'Undo Table Change', click() { console.log('item 1 clicked') } }))
-menu.append(new MenuItem({ label: 'Redo Table Change', click() { console.log('item 1 clicked') } }))
+menu.append(new MenuItem({ label: 'Undo Table Change', click() { undoTableChange() } }))
+menu.append(new MenuItem({ label: 'Redo Table Change', click() { redoTableChange() } }))
 menu.append(new MenuItem({ type: 'separator' }))
 menu.append(new MenuItem({ label: 'Copy Text', click() {console.log('pasting normal text')}}))
 menu.append(new MenuItem({ label: 'Paste Text', click() {console.log('pasting normal text')}}))
@@ -147,11 +160,11 @@ function createTable(obj, objKeys, innerObjKeys) {
 
 };
 
-function pullDataFromTable(data) {
+function compileDataForTable(data) {
     const equalSignPos = data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? data.indexOf('=') + 1 : 0;
-    console.log(equalSignPos);
-    const endOfConst = data.indexOf('const ') < equalSignPos ? data.indexOf('const ') + 6 : 0;
-    equalSignPos ? document.querySelector('#file-name').value = data.slice(endOfConst, equalSignPos - 2).trim() : '';
+    // console.log(equalSignPos);
+    // const endOfConst = data.indexOf('const ') < equalSignPos ? data.indexOf('const ') + 6 : 0;
+    // equalSignPos ? document.querySelector('#file-name').value = data.slice(endOfConst, equalSignPos - 2).trim() : '';
     const JSONobj = data.slice(equalSignPos);
     const parsedObj = JSON.parse(JSONobj);
     const objKeys = Object.keys(parsedObj);
@@ -166,14 +179,14 @@ function openFile() {
     dialog.showOpenDialog(
         { properties: ['openFile'] },
         (res => {
-            console.log(res);
+            //console.log(res);
             const fileName = res.toString();
             document.querySelector('#file-path').value = fileName;
             document.querySelector('#file-name').value = fileName.slice(fileName.lastIndexOf('\\') + 1, fileName.lastIndexOf('.'));
             const data = fs.readFileSync(fileName, 'utf8');
-            console.log(data);
+            //console.log(data);
             
-            pullDataFromTable(data);
+            compileDataForTable(data);
         })
     )
 }
@@ -201,3 +214,9 @@ function saveAs() {
 }
 
 document.querySelector('#save-as').addEventListener('click', saveAs);
+
+ipcRenderer.on('request-to-open', openFile)
+
+ipcRenderer.on('request-to-save', saveFile)
+
+ipcRenderer.on('request-to-saveas', saveAs)
