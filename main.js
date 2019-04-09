@@ -40,10 +40,17 @@ function openPreviewWin () {
       nodeIntegration: true
     }
   })
-  previewWin.on('show', function() {
+
+  console.log(44)
+
+  previewWin.once('ready-to-show', () => {
+    console.log('ready to show')
+  })
+
+  /*previewWin.on('browser-window-created', function() {
     console.log('the thing went off')
     mainWindow.send('request-json-preview')
-  })
+  })*/
 
   // and load the index.html of the app.
   previewWin.loadFile('./views/previewWin.html')
