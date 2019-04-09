@@ -4,6 +4,7 @@ const {app, BrowserWindow, Menu, ipcMain} = require('electron')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let previewWin
 
 function createWindow () {
   // Create the browser window.
@@ -29,6 +30,39 @@ function createWindow () {
     mainWindow = null
   })
 }
+
+function openPreviewWin () {
+  // Create the browser window.
+  previewWin = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+  previewWin.on('show', function() {
+    console.log('the thing went off')
+    mainWindow.send('request-json-preview')
+  })
+
+  // and load the index.html of the app.
+  previewWin.loadFile('./views/previewWin.html')
+
+  // Open the DevTools.
+  // mainWindow.webContents.openDevTools()
+  // Emitted when the window is closed.
+  previewWin.on('closed', function () {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    previewWin = null
+  })
+}
+
+ipcMain.on('json-data', (e, jsonData) => {
+  previewWin.send('json-data', jsonData);
+  console.log(61, jsonData);
+})
 
 const template = [
   { 
@@ -87,11 +121,19 @@ const template = [
         label: 'Convert to JSON',
         checked: false
        },
+       { type: 'separator' },
+       { label: 'More Settings' }
     ]
   },
   {
     label: 'View',
     submenu: [
+      { 
+        label: 'Preview JSON',
+        click() {
+          openPreviewWin();
+        }
+       },
       { role: 'reload' },
       { role: 'forcereload' },
       { role: 'toggledevtools' },
@@ -166,7 +208,6 @@ app.on('open-file', (e) => {
   e.preventDefault();
   console.log(e);
   console.log(process.argv);
-
 })
 
 // This method will be called when Electron has finished

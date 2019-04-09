@@ -3,17 +3,16 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Hello World!</title>
+  <title>JSON Editor</title>
   <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
-    integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+  integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 
 <body>
-  <input id="file-name" placeholder="File name">
-  <input id="file-path" placeholder="File path" readonly>
-  <button id="choose-file" type="button" class="btn btn-primary">Open File</button>
+  <h1 id="file-name" class="display-1">New JSON Array</h1>
+  <h5 id="file-path" placeholder="File path">No Path Selected</h5>
   <table id="main-table" class="table table-bordered ">
     <thead>
       <tr>

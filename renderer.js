@@ -1,7 +1,10 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-function convertToJSON(table) {
+let mainVariable;
+let key0;
+
+function convertToArray(table) {
     const headers = Array.from(table.querySelector('THEAD').querySelector('TR:last-child').querySelectorAll('TH'));
     const rows = Array.from(table.querySelector('TBODY').querySelectorAll('TR'));
     function JSONObject(keys, values) {
@@ -9,14 +12,22 @@ function convertToJSON(table) {
             this[key.innerHTML] = values[index].innerHTML;
         })
     }
-    const arrayOfData = rows.map(row => new JSONObject(headers, Array.from(row.querySelectorAll('TH, TD'))));
+    return rows.map(row => new JSONObject(headers, Array.from(row.querySelectorAll('TH, TD'))));
     // console.log(JSON.stringify(arrayOfData, null, 4));
-    return JSON.stringify(arrayOfData, null, 4)
+    
 };
 
+function convertToJSON() {
+    const array = convertToArray(document.querySelector('TABLE'));
+    const fullObject = key0 ? {[key0] : array} : array;
+    const jsonData = JSON.stringify(fullObject, null, 4);
+    if (mainVariable)
+        return mainVariable + ' ' + jsonData;
+    else return jsonData
+}
+
 document.querySelector('#save-updates').addEventListener('click', () => {
-    //const jsonData = convertToJSON(document.querySelector('TABLE'));
-    document.querySelector('#file-path').value === '' ? saveAs() : saveFile();
+    document.querySelector('#file-path').innerHTML === '' ? saveAs() : saveFile();
 });
 
 function addNewRow(content = []) {
@@ -33,7 +44,6 @@ function addNewRow(content = []) {
 
 document.querySelector('#add-new-row').addEventListener('click', () => {
     addNewRow();
-    saveTable();
 });
 
 function addNewCol(content = '') {
@@ -54,13 +64,12 @@ function addNewCol(content = '') {
 
 document.querySelector('#add-new-col').addEventListener('click', () => {
     addNewCol();
-    saveTable();
 });
-
+/*
 var changesToTable = [];
 var currentPosInChangesToTable = -1;
 function saveTable() {
-    changesToTable.push(convertToJSON(document.querySelector('TABLE')));
+    changesToTable.push(convertToArray());
     currentPosInChangesToTable !== changesToTable.length - 1 ? currentPosInChangesToTable = changesToTable.length - 1 : currentPosInChangesToTable ++;
     console.log('save table', currentPosInChangesToTable, changesToTable.length);
     //console.log(changesToTable);
@@ -82,7 +91,7 @@ function redoTableChange() {
     console.log('redo table', currentPosInChangesToTable, changesToTable.length);
     currentPosInChangesToTable < changesToTable.length - 1 ? compileDataForTable(changesToTable[++ currentPosInChangesToTable]) : null;
 }
-
+*/
 const { remote, ipcRenderer } = require('electron')
 const { Menu, MenuItem, dialog } = remote
 const fs = remote.require('fs')
@@ -111,14 +120,14 @@ function pasteTable() {
             if (pasteCols === existingCols) {
                 insertTable(rows, pasteCols, existingCols);
             } else dialog.showMessageBox({
-                type: 'warning', 
+                type: 'question', 
                 alwaysOnTop: true, 
                 message: 'The table you are pasting does not have the same number of columns as the existing one. Would you like to adjust the size of this table?',
                 buttons: ['Yes', 'No']
-        }, (res => {
+        }, res => {
             if (res === 0)
-                (insertTable(rows, pasteCols, existingCols))
-        }))
+                insertTable(rows, pasteCols, existingCols)
+        })
     })
 }
 
@@ -134,9 +143,8 @@ function insertTable(rows, pasteCols, existingCols) {
         }
         return repeatedString;
     }
-    const tableText = rows.map(row => `<tr draggable="true">\n\t<td contenteditable>${row.replace(/\t/g, '</td>\n\t<td contenteditable>')}</td>\n\t${addBlank(existingCols - pasteCols)}<td><div class="row-number"></div><button onmousedown="highlightRow(this);" type="button" class="btn btn-secondary btn-sm">Move</button></td>\n\t<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>\n</tr>`).join('\n');
+    const tableText = rows.map(row => `<tr draggable="true">\n\t<td contenteditable>${row.replace(/\t/g, '</td>\n\t<td contenteditable>')}</td>\n\t${addBlank(existingCols - pasteCols)}<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>\n\t<td onmousedown="highlightRow(this);"><div class="row-number"></div><i class="fas fa-ellipsis-v"></i></td>\n</tr>`).join('\n');
     document.querySelector('TBODY').innerHTML += tableText;
-    saveTable();
 }
 
 function createTable(obj, objKeys, innerObjKeys) {
@@ -162,18 +170,17 @@ function createTable(obj, objKeys, innerObjKeys) {
 
 function compileDataForTable(data) {
     const equalSignPos = data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? data.indexOf('=') + 1 : 0;
-    // console.log(equalSignPos);
-    // const endOfConst = data.indexOf('const ') < equalSignPos ? data.indexOf('const ') + 6 : 0;
-    // equalSignPos ? document.querySelector('#file-name').value = data.slice(endOfConst, equalSignPos - 2).trim() : '';
+    data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? mainVariable = data.slice(0, equalSignPos) : mainVariable = '';
     const JSONobj = data.slice(equalSignPos);
     const parsedObj = JSON.parse(JSONobj);
-    const objKeys = Object.keys(parsedObj);
-    const innerObjKeys = Object.keys(parsedObj[objKeys[0]]);
+    const obj = Object.keys(parsedObj).length === 1 ? parsedObj[Object.keys(parsedObj)[0]] : parsedObj;
+    Object.keys(parsedObj).length === 1 ? key0 = Object.keys(parsedObj)[0] : key0 = '';
+    const objKeys = Object.keys(obj);
+    //console.log(objKeys);
+    const innerObjKeys = Object.keys(obj[objKeys[0]]);
     //console.log(innerObjKeys);
-    createTable(parsedObj, objKeys, innerObjKeys);
+    createTable(obj, objKeys, innerObjKeys);
 }
-
-document.querySelector('#choose-file').addEventListener('click', openFile);
 
 function openFile() {
     dialog.showOpenDialog(
@@ -181,18 +188,17 @@ function openFile() {
         (res => {
             //console.log(res);
             const fileName = res.toString();
-            document.querySelector('#file-path').value = fileName;
-            document.querySelector('#file-name').value = fileName.slice(fileName.lastIndexOf('\\') + 1, fileName.lastIndexOf('.'));
+            document.querySelector('#file-path').innerHTML = fileName;
+            document.querySelector('#file-name').innerHTML = fileName.slice(fileName.lastIndexOf('\\') + 1, fileName.lastIndexOf('.'));
             const data = fs.readFileSync(fileName, 'utf8');
             //console.log(data);
-            
             compileDataForTable(data);
         })
     )
 }
 
 function saveFile() {
-    fs.writeFileSync(document.querySelector('#file-path').value, convertToJSON(document.querySelector('TABLE')), err => {
+    fs.writeFileSync(document.querySelector('#file-path').innerHTML, convertToJSON(), err => {
         if (err)
             console.log(err)
     })
@@ -206,8 +212,9 @@ function saveAs() {
                 { name: 'JSON', extensions: ['json'] },
                 { name: 'All Files', extensions: ['*'] }
             ]
-        }, (res => {
-            document.querySelector('#file-path').value = res;
+        }, (fileName => {
+            document.querySelector('#file-path').innerHTML = fileName;
+            document.querySelector('#file-name').innerHTML = fileName.slice(fileName.lastIndexOf('\\') + 1, fileName.lastIndexOf('.'));
             saveFile();
         })
     )
@@ -220,3 +227,21 @@ ipcRenderer.on('request-to-open', openFile)
 ipcRenderer.on('request-to-save', saveFile)
 
 ipcRenderer.on('request-to-saveas', saveAs)
+
+ipcRenderer.on('request-json-preview', () => {
+    ipcRenderer.send('json-data', convertToJSON())
+})
+
+function saveFirstDialog() {
+    dialog.showMessageBox({
+        type: 'warning', 
+        alwaysOnTop: true, 
+        message: 'Would you like to save this before proceeding?',
+        buttons: ['Save', 'Save As', `Don't Save`]
+    }, res => {
+    if (res === 0)
+        saveFile()
+    if (res === 1)
+        saveAs()
+    })
+}
