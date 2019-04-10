@@ -11,8 +11,8 @@
 </head>
 
 <body>
-  <h1 id="file-name" class="display-1">New JSON Array</h1>
-  <h5 id="file-path" placeholder="File path">No Path Selected</h5>
+  <h1 id="file-name" class="display-1"></h1>
+  <h5 id="file-path" placeholder="File path"></h5>
   <table id="main-table" class="table table-bordered ">
     <thead>
       <tr>
@@ -67,107 +67,9 @@
   </table>
   <button id="add-new-row" type="button" class="btn btn-primary btn-lg btn-block">+</button>
   <button id="add-new-col" type="button" class="btn btn-primary btn-lg btn-block">+</button>
-  <button id="save-updates" type="button" class="btn btn-secondary btn-lg btn-block">Save Data</button>
-  <button id="save-as" type="button" class="btn btn-secondary btn-lg btn-block">Save As</button>
 
+  <script src="index.js"></script>
   <script>
-    // You can also require other files to run in this process
-    function deleteRow(deleteBtn) {
-      deleteBtn.parentElement.parentElement.remove();
-    };
-
-    function deleteCol(deleteBtn) {
-      const thisTableCell = deleteBtn.parentElement;
-      const siblingCells = thisTableCell.parentElement.children;
-      if (siblingCells.length > 1) {
-        const indexOfCol = Array.from(siblingCells).indexOf(thisTableCell);
-        const rows = Array.from(document.querySelector('TABLE').querySelectorAll('TR'));
-        rows.forEach(row => {
-          row.children[indexOfCol].remove();
-        })
-      }
-    };
-
-    function moveRowTo(btn, destination) {
-        const movingRow = btn.parentElement.parentElement;
-        const rows = function() {return Array.from(document.querySelector('TBODY').querySelectorAll('TR'))};
-        switch(destination) {
-          case 'UP':
-            movingRow.previousElementSibling ? movingRow.previousElementSibling.insertAdjacentElement('beforebegin', movingRow) : null;
-            break;
-          case 'DOWN':
-            movingRow.nextElementSibling ? movingRow.nextElementSibling.insertAdjacentElement('afterend', movingRow) : null;
-           break;
-          default:
-            const destinationRow = rows[destination - 1];
-            rows().indexOf(movingRow) < number ? destinationRow.insertAdjacentElement('afterend', movingRow) : destinationRow.insertAdjacentElement('beforebegin', movingRow);
-        };
-        rows().forEach((row, index) => {
-          row.querySelector('.row-number').innerHTML = index + 1;
-        });
-    };
-
-    function highlightRow(btn) {
-      const movingRow = btn.parentElement;
-      const rowIndex = Array.from(tableBody.querySelectorAll('TR')).indexOf(movingRow);
-      //movingRow.draggable = 'true';
-      movingRow.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData("text/plain", rowIndex);
-      });
-
-      movingRow.classList.add('highlight-row');
-      movingRow.addEventListener('dragend', (e) => {
-        let index = 0;
-        for (let i  of document.querySelectorAll('TR')) {
-          i.classList.remove('bottom-row-insert');
-          i.classList.remove('highlight-row');
-          i.querySelector('.row-number') ? i.querySelector('.row-number').innerHTML = ++ index : null;
-        }
-      });
-    };
-
-    function removeHighlight(btn) {
-      const movingRow = btn.parentElement.parentElement;
-      movingRow.draggable = 'false';
-      movingRow.classList.remove('highlight-row');
-    };
-
-    var tableBody = document.querySelector('TBODY');
-
-    tableBody.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      const row = e.target.closest('TR');
-      row.classList.add('bottom-row-insert');
-    });
-    
-    tableBody.addEventListener('dragleave', (e) => {
-      const row = e.target.closest('TR');
-      row.classList.remove('bottom-row-insert');
-    });
-    
-    tableBody.addEventListener('drop', (e) => {
-      const rowIndex = e.dataTransfer.getData('text/plain');
-      e.target.closest('TR').insertAdjacentElement('afterend', tableBody.querySelectorAll('TR')[rowIndex]);
-    });
-    
-    document.querySelector('THEAD').querySelector('TR:last-of-type').addEventListener('dragover', (e) => {
-      e.preventDefault();
-      const row = e.target.closest('TR');
-      row.classList.add('bottom-row-insert');
-    });
-
-    document.querySelector('THEAD').querySelector('TR:last-of-type').addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      const row = e.target.closest('TR');
-      row.classList.remove('bottom-row-insert');
-    });
-
-    document.querySelector('THEAD').querySelector('TR:last-of-type').addEventListener('drop', (e) => {
-      const rowIndex = e.dataTransfer.getData('text/plain');
-      tableBody.insertAdjacentElement('afterbegin', tableBody.querySelectorAll('TR')[rowIndex]);
-    });
-
-
     require('./renderer.js')
   </script>
 </body>

@@ -1,8 +1,43 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
+
+const { remote, ipcRenderer } = require('electron')
+const { Menu, MenuItem, dialog } = remote
+const fs = remote.require('fs')
+
+const menu = new Menu()
+menu.append(new MenuItem({ label: 'Undo Table Change', click() { undoTableChange() } }))
+menu.append(new MenuItem({ label: 'Redo Table Change', click() { redoTableChange() } }))
+menu.append(new MenuItem({ type: 'separator' }))
+menu.append(new MenuItem({ role: 'copy' }))
+menu.append(new MenuItem({ role: 'paste' }))
+menu.append(new MenuItem({ label: 'Paste Table', click() {pasteTable()}}))
+
+window.addEventListener('contextmenu', (e) => {
+  e.preventDefault()
+  menu.popup({ window: remote.getCurrentWindow() })
+}, false)
+
+/*const currentDocument = {
+    mainVariable: undefined,
+    key0: undefined,
+    documentFilePath: undefined,
+    setFileName: (fullPath = 'No File Selected', name = 'New JSON') => {
+        document.querySelector('#file-path').innerHTML = fullPath;
+        document.querySelector('#file-name').innerHTML = fullPath.includes('\\') ? fullPath.slice(fullPath.lastIndexOf('\\') + 1, fullPath.lastIndexOf('.')) : name;
+        this.documentFilePath = fullPath.includes('\\') ? fullPath : undefined;
+    },
+    start: `[
+        {
+            "First Header": "First Item"
+        }
+    ]`
+}*/
+
 let mainVariable;
 let key0;
+let documentFilePath;
 
 function convertToArray(table) {
     const headers = Array.from(table.querySelector('THEAD').querySelector('TR:last-child').querySelectorAll('TH'));
@@ -25,90 +60,6 @@ function convertToJSON() {
         return mainVariable + ' ' + jsonData;
     else return jsonData
 }
-
-document.querySelector('#save-updates').addEventListener('click', () => {
-    document.querySelector('#file-path').innerHTML === '' ? saveAs() : saveFile();
-});
-
-function addNewRow(content = []) {
-    const rows = document.querySelector('TABLE').querySelectorAll('TR');
-    const numberOfCols = rows[0].querySelectorAll('TH').length;
-    const newRow = document.createElement('TR');
-    newRow.draggable = 'true';
-    for (let i = 0; i < numberOfCols; i ++)
-        newRow.innerHTML += `<td contenteditable>${content.length === 0 ? `Col${i + 1} Row${rows.length - 1}` : content[i]}</td>`;
-        newRow.innerHTML += `<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>`
-    newRow.innerHTML += `<td onmousedown="highlightRow(this);"><div class="row-number">${rows.length - 1}</div><i class="fas fa-ellipsis-v"></i></td>`;
-    document.querySelector('TBODY').appendChild(newRow);
-};
-
-document.querySelector('#add-new-row').addEventListener('click', () => {
-    addNewRow();
-});
-
-function addNewCol(content = '') {
-    const rows = Array.from(document.querySelector('TABLE').querySelectorAll('TR'));
-    const numberOfCols = rows[0].querySelectorAll('TH').length;
-    rows.forEach((row, index) => {
-        const newCell = index === 1 || index === 0 ? document.createElement('TH') : document.createElement('TD');
-        if (index === 0) {
-            newCell.innerHTML = `<button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button>`;
-        }
-        else {
-            newCell.contentEditable = true;
-            newCell.innerHTML = content === '' ? `Col${numberOfCols} Row${index - 1}` : content;
-        }
-        row.children[numberOfCols - 1].insertAdjacentElement('afterend', newCell);
-    })
-};
-
-document.querySelector('#add-new-col').addEventListener('click', () => {
-    addNewCol();
-});
-/*
-var changesToTable = [];
-var currentPosInChangesToTable = -1;
-function saveTable() {
-    changesToTable.push(convertToArray());
-    currentPosInChangesToTable !== changesToTable.length - 1 ? currentPosInChangesToTable = changesToTable.length - 1 : currentPosInChangesToTable ++;
-    console.log('save table', currentPosInChangesToTable, changesToTable.length);
-    //console.log(changesToTable);
-
-    //console.log(changesToTable, currentPosInChangesToTable);
-};
-saveTable();
-
-function undoTableChange() {
-    
-    //currentPosInChangesToTable --;
-    console.log('undo table', currentPosInChangesToTable, changesToTable.length);
-    currentPosInChangesToTable > 0 ? compileDataForTable(changesToTable[-- currentPosInChangesToTable]) : null;
-}
-
-function redoTableChange() {
-    
-    //currentPosInChangesToTable ++;
-    console.log('redo table', currentPosInChangesToTable, changesToTable.length);
-    currentPosInChangesToTable < changesToTable.length - 1 ? compileDataForTable(changesToTable[++ currentPosInChangesToTable]) : null;
-}
-*/
-const { remote, ipcRenderer } = require('electron')
-const { Menu, MenuItem, dialog } = remote
-const fs = remote.require('fs')
-
-const menu = new Menu()
-menu.append(new MenuItem({ label: 'Undo Table Change', click() { undoTableChange() } }))
-menu.append(new MenuItem({ label: 'Redo Table Change', click() { redoTableChange() } }))
-menu.append(new MenuItem({ type: 'separator' }))
-menu.append(new MenuItem({ label: 'Copy Text', click() {console.log('pasting normal text')}}))
-menu.append(new MenuItem({ label: 'Paste Text', click() {console.log('pasting normal text')}}))
-menu.append(new MenuItem({ label: 'Paste Table', click() {pasteTable()}}))
-
-window.addEventListener('contextmenu', (e) => {
-  e.preventDefault()
-  //e.target.className = 'move-row' ? 
-  menu.popup({ window: remote.getCurrentWindow() })
-}, false)
 
 function pasteTable() {
     navigator.clipboard.readText()
@@ -169,39 +120,68 @@ function createTable(obj, objKeys, innerObjKeys) {
 };
 
 function compileDataForTable(data) {
+    //console.log(data)
     const equalSignPos = data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? data.indexOf('=') + 1 : 0;
     data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? mainVariable = data.slice(0, equalSignPos) : mainVariable = '';
     const JSONobj = data.slice(equalSignPos);
-    const parsedObj = JSON.parse(JSONobj);
-    const obj = Object.keys(parsedObj).length === 1 ? parsedObj[Object.keys(parsedObj)[0]] : parsedObj;
-    Object.keys(parsedObj).length === 1 ? key0 = Object.keys(parsedObj)[0] : key0 = '';
-    const objKeys = Object.keys(obj);
-    //console.log(objKeys);
-    const innerObjKeys = Object.keys(obj[objKeys[0]]);
-    //console.log(innerObjKeys);
-    createTable(obj, objKeys, innerObjKeys);
+    //const JSONobj = data;
+    try {
+        const parsedObj = JSON.parse(JSONobj);
+        if (Array.isArray(parsedObj)) {
+            const arrayIndexes = Object.keys(parsedObj);
+            const innerObjKeys = Object.keys(parsedObj[0]);
+            key0 = '';
+            createTable(parsedObj, arrayIndexes, innerObjKeys);
+        } else {
+            const obj = Object.keys(parsedObj).length === 1 ? parsedObj[Object.keys(parsedObj)[0]] : parsedObj;
+            //console.log(Object.keys(parsedObj), Object.keys(parsedObj).length === 1, obj);
+            Object.keys(parsedObj).length === 1 ? key0 = Object.keys(parsedObj)[0] : key0 = '';
+            const objKeys = Object.keys(obj);
+            //console.log(objKeys);
+            const innerObjKeys = Object.keys(obj[objKeys[0]]);
+            //console.log(innerObjKeys);
+            createTable(obj, objKeys, innerObjKeys);
+        }
+    } catch(e) {
+        showError(e);
+        newTable();
+    }
+}
+
+function setFileName(fullPath = 'No File Selected', name = 'New JSON') {
+    document.querySelector('#file-path').innerHTML = fullPath;
+    documentFilePath = fullPath.includes('\\') ? fullPath : undefined;
+    document.querySelector('#file-name').innerHTML = fullPath.includes('\\') ? fullPath.slice(fullPath.lastIndexOf('\\') + 1, fullPath.lastIndexOf('.')) : name;
+    console.log(fullPath);
 }
 
 function openFile() {
     dialog.showOpenDialog(
         { properties: ['openFile'] },
         (res => {
-            //console.log(res);
-            const fileName = res.toString();
-            document.querySelector('#file-path').innerHTML = fileName;
-            document.querySelector('#file-name').innerHTML = fileName.slice(fileName.lastIndexOf('\\') + 1, fileName.lastIndexOf('.'));
-            const data = fs.readFileSync(fileName, 'utf8');
-            //console.log(data);
-            compileDataForTable(data);
+            if (res) {
+                const fileName = res.toString();
+                console.log('selected file', res)
+                setFileName(fileName);
+                const data = fs.readFileSync(fileName, 'utf8');
+                compileDataForTable(data);
+            }
         })
     )
 }
 
 function saveFile() {
-    fs.writeFileSync(document.querySelector('#file-path').innerHTML, convertToJSON(), err => {
-        if (err)
-            console.log(err)
-    })
+    try {
+        console.log('saving')
+        fs.writeFileSync(documentFilePath, convertToJSON(), err => {
+            if (err)
+                showError(err)
+            console.log('saving', convertToJSON());
+        })
+    } catch {
+        console.log('save as')
+        saveAs()
+    }
 }
 
 function saveAs() {
@@ -213,16 +193,70 @@ function saveAs() {
                 { name: 'All Files', extensions: ['*'] }
             ]
         }, (fileName => {
-            document.querySelector('#file-path').innerHTML = fileName;
-            document.querySelector('#file-name').innerHTML = fileName.slice(fileName.lastIndexOf('\\') + 1, fileName.lastIndexOf('.'));
+            setFileName(fileName)
             saveFile();
         })
     )
 }
 
-document.querySelector('#save-as').addEventListener('click', saveAs);
+function saveFirstDialog(callback) {
+    dialog.showMessageBox({
+        type: 'warning', 
+        alwaysOnTop: true, 
+        message: 'Would you like to save this before proceeding?',
+        buttons: ['Save', 'Save As', `Don't Save`]
+    }, res => {
+        if (res === 0)
+            saveFile()
+        if (res === 1)
+            saveAs()
+        if (res === 2)
+            callback()
+    })
+}
 
-ipcRenderer.on('request-to-open', openFile)
+function showError(error) {
+    dialog.showMessageBox({
+        type: 'error',
+        title: 'Error',
+        alwaysOnTop: true, 
+        message: `${error}`
+    })
+}
+
+const starter = `[
+    {
+        "First Header": "First Item"
+    }
+]`
+
+function newTable() {
+    setFileName();
+    compileDataForTable(starter);
+}
+
+function checkEverythingIsSaved(callback) {
+    const fileName = documentFilePath !== undefined ? documentFilePath : '';
+    try {
+        const fileData = fs.readFileSync(fileName, 'utf8');
+        const currentData = convertToJSON();
+        if (currentData === fileData) 
+            callback()
+        else saveFirstDialog(callback);
+
+    } catch {
+        if (convertToJSON() === starter)
+            newTable()
+        else saveFirstDialog(callback);
+    }
+}
+
+window.onbeforeunload = (e) => {
+    console.log('ran before unload')
+    ipcRenderer.send('reload-data', convertToJSON(), documentFilePath);
+}
+
+ipcRenderer.on('request-to-open', () => {checkEverythingIsSaved(openFile)})
 
 ipcRenderer.on('request-to-save', saveFile)
 
@@ -232,16 +266,17 @@ ipcRenderer.on('request-json-preview', () => {
     ipcRenderer.send('json-data', convertToJSON())
 })
 
-function saveFirstDialog() {
-    dialog.showMessageBox({
-        type: 'warning', 
-        alwaysOnTop: true, 
-        message: 'Would you like to save this before proceeding?',
-        buttons: ['Save', 'Save As', `Don't Save`]
-    }, res => {
-    if (res === 0)
-        saveFile()
-    if (res === 1)
-        saveAs()
-    })
+ipcRenderer.on('new-table', () => {checkEverythingIsSaved(newTable)})
+
+ipcRenderer.on('paste-table', pasteTable)
+
+ipcRenderer.on('reload-data', (e, jsonData, fileName) => {
+    console.log('ran reload data')
+    fileName ? setFileName(fileName) : setFileName();
+    compileDataForTable(jsonData)
+})
+
+if (!documentFilePath) {
+    console.log('no doc path', documentFilePath)
+    newTable();
 }

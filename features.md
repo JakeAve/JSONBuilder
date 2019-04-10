@@ -1,0 +1,3 @@
+-save as when no file is there
+-settings to change the key 0 and mainvariable
+-keep all data on reload

@@ -32,3 +32,18 @@ tr td:last-of-type:hover {
 .bottom-row-insert {
     border-bottom: 3px solid #808080;
 }
+
+.black-bod {
+    background: #202020;
+    margin: 1em 3em;
+    overflow: auto;
+}
+
+.black-bod pre, .black-bod code {
+    overflow: visible;
+}
+
+#code-display {
+    color: #dadada;
+    font-family: 'Roboto Mono', monospace;
+}

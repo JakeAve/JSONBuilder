@@ -41,9 +41,16 @@ function openPreviewWin () {
     }
   })
 
-  previewWin.webContents.once('dom-ready', () => {
+  previewWin.webContents.on('dom-ready', () => {
     mainWindow.send('request-json-preview')
   })
+
+  previewWin.on('focus', () => {
+    mainWindow.send('request-json-preview')
+  })
+
+  const previewMenu = Menu.buildFromTemplate([{ role: 'reload' }])
+  previewWin.setMenu(previewMenu)
 
   // and load the index.html of the app.
   previewWin.loadFile('./views/previewWin.html')
@@ -86,9 +93,15 @@ const template = [
         accelerator: 'CmdOrCtrl+O',
         click() {
           mainWindow.send('request-to-open')
-        } 
+        }
       },
-      { label: 'New' }
+      { 
+        label: 'New',
+        accelerator: 'CommandOrControl+N',
+        click() {
+          mainWindow.send('new-table')
+        }
+      }
     ]
   },
   {
@@ -103,6 +116,13 @@ const template = [
       { role: 'copy' },
       { role: 'paste' },
       { role: 'pasteandmatchstyle' },
+      {
+        label: 'Paste Table',
+        accelerator: 'CommandOrControl+t',
+        click() {
+          mainWindow.send('paste-table')
+        }
+      },
       { role: 'delete' },
       { role: 'selectall' }
     ]
@@ -129,10 +149,12 @@ const template = [
     submenu: [
       { 
         label: 'Preview JSON',
+        accelerator: 'CommandOrControl+shift+p',
         click() {
-          openPreviewWin();
+          previewWin ? previewWin.focus() : openPreviewWin();
         }
        },
+      { type: 'separator' },
       { role: 'reload' },
       { role: 'forcereload' },
       { role: 'toggledevtools' },
@@ -207,6 +229,15 @@ app.on('open-file', (e) => {
   e.preventDefault();
   console.log(e);
   console.log(process.argv);
+})
+
+ipcMain.on('reload-data', (e, jsonData, fileName) => {
+  //console.log(jsonData)
+  function sendReloadToMainWin() {
+    mainWindow.send('reload-data', jsonData, fileName)
+  }
+  mainWindow.webContents.on('dom-ready', sendReloadToMainWin)
+  mainWindow.webContents.removeListener('dom-ready', sendReloadToMainWin)
 })
 
 // This method will be called when Electron has finished
