@@ -231,10 +231,14 @@ app.on('open-file', (e) => {
   console.log(process.argv);
 })
 
-ipcMain.on('reload-data', (e, jsonData, fileName) => {
-  //console.log(jsonData)
+let jsonData
+let fileName
+
+ipcMain.on('reload-data', (e, data, name) => {
+  jsonData = jsonData;
+  fileName = name;
   function sendReloadToMainWin() {
-    mainWindow.send('reload-data', jsonData, fileName)
+    mainWindow.send('reload-data', data, fileName)
   }
   mainWindow.webContents.on('dom-ready', sendReloadToMainWin)
   mainWindow.webContents.removeListener('dom-ready', sendReloadToMainWin)

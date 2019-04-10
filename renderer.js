@@ -236,7 +236,7 @@ function newTable() {
 }
 
 function checkEverythingIsSaved(callback) {
-    const fileName = documentFilePath !== undefined ? documentFilePath : '';
+    const fileName = documentFilePath;
     try {
         const fileData = fs.readFileSync(fileName, 'utf8');
         const currentData = convertToJSON();
@@ -246,7 +246,7 @@ function checkEverythingIsSaved(callback) {
 
     } catch {
         if (convertToJSON() === starter)
-            newTable()
+            callback()
         else saveFirstDialog(callback);
     }
 }
