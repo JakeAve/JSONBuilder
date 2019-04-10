@@ -2,9 +2,11 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const { remote, ipcRenderer } = require('electron')
+const { remote, ipcRenderer, shell } = require('electron')
 const { Menu, MenuItem, dialog } = remote
 const fs = remote.require('fs')
+
+
 
 const menu = new Menu()
 menu.append(new MenuItem({ label: 'Undo Table Change', click() { undoTableChange() } }))
@@ -28,6 +30,12 @@ menu.append(new MenuItem({
     label: 'Add Column',
     click() {
         addNewCol()
+    }
+}))
+menu.append(new MenuItem({
+    label: 'Open in default editor',
+    click() {
+        shell.openItem(documentFilePath)
     }
 }))
 
@@ -179,7 +187,6 @@ function setFileName(fullPath = 'No File Selected', name = 'New JSON') {
     document.querySelector('#file-path').innerHTML = fullPath;
     documentFilePath = fullPath.includes('\\') ? fullPath : undefined;
     document.querySelector('#file-name').innerHTML = fullPath.includes('\\') ? fullPath.slice(fullPath.lastIndexOf('\\') + 1, fullPath.lastIndexOf('.')) : name;
-    console.log(fullPath);
 }
 
 function openFile() {
@@ -322,7 +329,7 @@ ipcRenderer.on('convert-to-json', (e) => {
 
 ipcRenderer.on('convert-to-js-object', (e) => {
     console.log('hi')
-    if (mainVariable) 
+    if (!mainVariable) 
         dialog.showMessageBox({
             type: 'warning',
             message: `To convert to a Javascript object, you must define a variable and the data will no longer be compatible with functions like JSON.parse(). Are you sure you want to convert to a Javascript object?`,
@@ -339,13 +346,17 @@ ipcRenderer.on('request-settings-data', () => {
         mainVariable,
         key0
     }
+    console.log(settings)
     ipcRenderer.send('settings-data', settings)
 })
 
-ipcRenderer.on('change-main-variable', (e, value) => {
-    setMainVariable(value)
+ipcRenderer.on('update-settings-data', (e, settings) => {
+    setMainVariable(settings.mainVariable)
+    key0 = settings.key0
 })
 
-ipcRenderer.on('change-key-0', (e, value) => {
-    key0 = value
+ipcRenderer.on('open-in-editor', () => {
+    if (documentFilePath)
+    shell.showItemInFolder(documentFilePath)
+    else dialog.showErrorBox('Error', 'You have not saved the document yet')
 })

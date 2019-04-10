@@ -6,96 +6,6 @@ const {app, BrowserWindow, Menu, ipcMain} = require('electron')
 let jsonData
 let fileName
 
-let mainWindow
-let previewWin
-let settingsWin
-
-function createWindow () {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true
-    }
-  })
-
-  mainWindow.loadFile('index.html')
-
-  mainWindow.webContents.on('dom-ready', () => {
-    mainWindow.send('reload-data', jsonData, fileName)
-  })
-  mainWindow.on('closed', function () {
-    mainWindow = null
-  })
-}
-
-function openPreviewWin () {
-  previewWin = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true
-    }
-  })
-
-  previewWin.webContents.on('dom-ready', () => {
-    mainWindow.send('request-json-preview')
-  })
-
-  previewWin.on('focus', () => {
-    mainWindow.send('request-json-preview')
-  })
-
-  const previewMenu = Menu.buildFromTemplate([{ role: 'reload' }])
-  previewWin.setMenu(previewMenu)
-
-  previewWin.loadFile('./views/previewWin.html')
-
-  previewWin.on('closed', function () {
-    previewWin = null
-  })
-}
-
-function openSettingsWin () {
-  settingsWin = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true
-    }
-  })
-
-  settingsWin.webContents.on('dom-ready', () => {
-    mainWindow.send('request-settings-data')
-  })
-
-  const settingsMenu =  Menu.buildFromTemplate([
-    { 
-    label: 'Preview JSON',
-    accelerator: 'CommandOrControl+shift+p',
-    click() {
-      previewWin ? previewWin.focus() : openPreviewWin();
-    }
-   }
-  ])
-
-  settingsWin.setMenu(settingsMenu)
-
-  settingsWin.loadFile('./views/settingsWin.html')
-
-  settingsWin.on('closed', function () {
-    settingsWin = null
-  })
-}
-
-ipcMain.on('json-data', (e, jsonData) => {
-  previewWin.send('json-data', jsonData);
-})
-
-ipcMain.on('settings-data', (e, settings) => {
-  settingsWin.send('settings-data', settings)
-})
-
 const template = [
   { 
     label: 'File',
@@ -173,17 +83,17 @@ const template = [
       { 
         type: 'radio',
         id: 'convert-to-js-object',
-        label: 'Convert to Javascript Object',
+        label: 'Format as Javascript Object',
         checked: true,
         click(menuItem) {
-          mainWindow.send('convert-to-js-object')
+          mainWindow.webContents.send('convert-to-js-object')
           console.log(menuItem.checked, menuItem.id)
         }
        },
       { 
         type: 'radio',
         id: 'convert-to-json',
-        label: 'Convert to JSON',
+        label: 'Format as JSON',
         checked: false,
         click(menuItem) {
           mainWindow.webContents.send('convert-to-json')
@@ -194,7 +104,7 @@ const template = [
        { 
          label: 'More Settings',
          click() {
-           openSettingsWin()
+           settingsWin ? settingsWin.focus() : openSettingsWin()
          }
         }
     ]
@@ -203,14 +113,26 @@ const template = [
     label: 'View',
     submenu: [
       { 
-        label: 'Preview JSON',
+        label: 'Preview File',
+        id: 'preview',
         accelerator: 'CommandOrControl+shift+p',
         click() {
           previewWin ? previewWin.focus() : openPreviewWin();
         }
-       },
+      },
+      {
+        label: 'Show in Folder',
+        id: 'open-in-file-explorer',
+        accelerator: 'CommandOrControl+shift+o',
+        click() {
+          mainWindow.send('open-in-editor')
+        }
+      },
       { type: 'separator' },
-      { role: 'reload' },
+      {
+        role: 'reload',
+        id: 'reload'
+      },
       { role: 'forcereload' },
       { role: 'toggledevtools' },
       { type: 'separator' },
@@ -280,6 +202,98 @@ if (process.platform === 'darwin') {
 const menu = Menu.buildFromTemplate(template)
 Menu.setApplicationMenu(menu)
 
+let mainWindow
+let previewWin
+let settingsWin
+
+function createWindow () {
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+
+  mainWindow.loadFile('index.html')
+
+  mainWindow.webContents.on('dom-ready', () => {
+    mainWindow.send('reload-data', jsonData, fileName)
+  })
+  mainWindow.on('closed', function () {
+    mainWindow = null
+  })
+}
+
+function openPreviewWin () {
+  previewWin = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+
+  previewWin.webContents.on('dom-ready', () => {
+    mainWindow.send('request-json-preview')
+  })
+
+  previewWin.on('focus', () => {
+    mainWindow.send('request-json-preview')
+  })
+
+  const previewMenu = Menu.buildFromTemplate([
+    { role: 'reload' },
+    menu.getMenuItemById('open-in-file-explorer')
+  ])
+  previewWin.setMenu(previewMenu)
+
+  previewWin.loadFile('./views/previewWin.html')
+
+  previewWin.on('closed', function () {
+    previewWin = null
+  })
+}
+
+function openSettingsWin () {
+  settingsWin = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+
+  settingsWin.webContents.on('dom-ready', () => {
+    mainWindow.send('request-settings-data')
+  })
+
+  const settingsMenu =  Menu.buildFromTemplate([
+    menu.getMenuItemById('preview'),
+    menu.getMenuItemById('open-in-file-explorer')
+  ])
+
+  settingsWin.setMenu(settingsMenu)
+
+  settingsWin.loadFile('./views/settingsWin.html')
+
+  settingsWin.on('closed', function () {
+    settingsWin = null
+  })
+}
+
+ipcMain.on('json-data', (e, jsonData) => {
+  previewWin.send('json-data', jsonData);
+})
+
+ipcMain.on('settings-data', (e, settings) => {
+  settingsWin.send('settings-data', settings)
+})
+
+ipcMain.on('update-settings-data', (e, settings) => {
+  mainWindow.send('update-settings-data', settings)
+})
+
 app.on('open-file', (e) => {
   e.preventDefault();
   console.log(e);
@@ -289,6 +303,10 @@ app.on('open-file', (e) => {
 ipcMain.on('reload-data', (e, data, name) => {
   jsonData = data;
   fileName = name;
+})
+
+ipcMain.on('open-settings', () => {
+  settingsWin ? settingsWin.focus() : openSettingsWin()
 })
 
 ipcMain.on('convert-to-js-object', () => {
