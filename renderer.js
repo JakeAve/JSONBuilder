@@ -171,17 +171,13 @@ function openFile() {
 }
 
 function saveFile() {
-    try {
-        console.log('saving')
+    if (documentFilePath)
         fs.writeFileSync(documentFilePath, convertToJSON(), err => {
             if (err)
                 showError(err)
             console.log('saving', convertToJSON());
-        })
-    } catch {
-        console.log('save as')
-        saveAs()
-    }
+            })
+    else saveAs();
 }
 
 function saveAs() {
@@ -271,12 +267,6 @@ ipcRenderer.on('new-table', () => {checkEverythingIsSaved(newTable)})
 ipcRenderer.on('paste-table', pasteTable)
 
 ipcRenderer.on('reload-data', (e, jsonData, fileName) => {
-    console.log('ran reload data')
     fileName ? setFileName(fileName) : setFileName();
-    compileDataForTable(jsonData)
+    jsonData ? compileDataForTable(jsonData) : newTable();
 })
-
-if (!documentFilePath) {
-    console.log('no doc path', documentFilePath)
-    newTable();
-}

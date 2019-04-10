@@ -3,6 +3,9 @@ const {app, BrowserWindow, Menu, ipcMain} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
+let jsonData
+let fileName
+
 let mainWindow
 let previewWin
 
@@ -18,6 +21,10 @@ function createWindow () {
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
+
+  mainWindow.webContents.on('dom-ready', () => {
+    mainWindow.send('reload-data', jsonData, fileName)
+  })
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -231,17 +238,9 @@ app.on('open-file', (e) => {
   console.log(process.argv);
 })
 
-let jsonData
-let fileName
-
 ipcMain.on('reload-data', (e, data, name) => {
-  jsonData = jsonData;
+  jsonData = data;
   fileName = name;
-  function sendReloadToMainWin() {
-    mainWindow.send('reload-data', data, fileName)
-  }
-  mainWindow.webContents.on('dom-ready', sendReloadToMainWin)
-  mainWindow.webContents.removeListener('dom-ready', sendReloadToMainWin)
 })
 
 // This method will be called when Electron has finished
