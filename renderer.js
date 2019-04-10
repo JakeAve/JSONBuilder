@@ -12,7 +12,24 @@ menu.append(new MenuItem({ label: 'Redo Table Change', click() { redoTableChange
 menu.append(new MenuItem({ type: 'separator' }))
 menu.append(new MenuItem({ role: 'copy' }))
 menu.append(new MenuItem({ role: 'paste' }))
-menu.append(new MenuItem({ label: 'Paste Table', click() {pasteTable()}}))
+menu.append(new MenuItem({ 
+    label: 'Paste Table',
+    accelerator: 'commandOrControl + T',
+    click() {pasteTable()}
+}))
+menu.append(new MenuItem({ type: 'separator' }))
+menu.append(new MenuItem({ 
+    label: 'Add Row',
+    click() {
+        addNewRow()
+    }
+}))
+menu.append(new MenuItem({ 
+    label: 'Add Column',
+    click() {
+        addNewCol()
+    }
+}))
 
 window.addEventListener('contextmenu', (e) => {
   e.preventDefault()
@@ -38,6 +55,16 @@ window.addEventListener('contextmenu', (e) => {
 let mainVariable;
 let key0;
 let documentFilePath;
+
+function setMainVariable(value) {
+    if (value) {
+        mainVariable = value;
+        ipcRenderer.send('convert-to-js-object')
+    } else {
+        mainVariable = undefined;
+        ipcRenderer.send('convert-to-json')
+    }
+}
 
 function convertToArray(table) {
     const headers = Array.from(table.querySelector('THEAD').querySelector('TR:last-child').querySelectorAll('TH'));
@@ -94,12 +121,12 @@ function insertTable(rows, pasteCols, existingCols) {
         }
         return repeatedString;
     }
-    const tableText = rows.map(row => `<tr draggable="true">\n\t<td contenteditable>${row.replace(/\t/g, '</td>\n\t<td contenteditable>')}</td>\n\t${addBlank(existingCols - pasteCols)}<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>\n\t<td onmousedown="highlightRow(this);"><div class="row-number"></div><i class="fas fa-ellipsis-v"></i></td>\n</tr>`).join('\n');
+    const tableText = rows.map(row => `<tr draggable="true">\n\t<td contenteditable>${row.replace(/\t/g, '</td>\n\t<td contenteditable>')}</td>\n\t${addBlank(existingCols - pasteCols)}<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);" title="Delete row">X</button></td>\n\t<td onmousedown="highlightRow(this);"><div class="row-number"></div><i class="fas fa-ellipsis-v"></i></td>\n</tr>`).join('\n');
     document.querySelector('TBODY').innerHTML += tableText;
 }
 
 function createTable(obj, objKeys, innerObjKeys) {
-    document.querySelector('THEAD').querySelector('TR').innerHTML = `<th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button></th>`;
+    document.querySelector('THEAD').querySelector('TR').innerHTML = `<th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);" title="Delete table">X</button></th>`;
 
     document.querySelector('THEAD').querySelector('TR:last-of-type').innerHTML = `<th id="first-header" scope="col" contenteditable>${innerObjKeys[0]}</th>\n<th colspan="2" rowspan="2"></th>`;
 
@@ -122,7 +149,7 @@ function createTable(obj, objKeys, innerObjKeys) {
 function compileDataForTable(data) {
     //console.log(data)
     const equalSignPos = data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? data.indexOf('=') + 1 : 0;
-    data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? mainVariable = data.slice(0, equalSignPos) : mainVariable = '';
+    data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? setMainVariable(data.slice(0, equalSignPos)) : setMainVariable(undefined);
     const JSONobj = data.slice(equalSignPos);
     //const JSONobj = data;
     try {
@@ -189,8 +216,10 @@ function saveAs() {
                 { name: 'All Files', extensions: ['*'] }
             ]
         }, (fileName => {
-            setFileName(fileName)
-            saveFile();
+            if (fileName) {
+                setFileName(fileName)
+                saveFile()
+            }
         })
     )
 }
@@ -266,7 +295,57 @@ ipcRenderer.on('new-table', () => {checkEverythingIsSaved(newTable)})
 
 ipcRenderer.on('paste-table', pasteTable)
 
+ipcRenderer.on('new-row', () => {addNewRow()})
+
+ipcRenderer.on('new-col', () => {addNewCol()})
+
 ipcRenderer.on('reload-data', (e, jsonData, fileName) => {
     fileName ? setFileName(fileName) : setFileName();
     jsonData ? compileDataForTable(jsonData) : newTable();
+})
+
+//ipcRenderer.on('convert-to-js-object')
+
+ipcRenderer.on('convert-to-json', (e) => {
+    console.log('hi')
+    if (mainVariable) 
+        dialog.showMessageBox({
+            type: 'warning',
+            message: `This document currently begins with a variable "${mainVariable}". By converting to JSON, the variable will be deleted. Are you sure you want to convert to JSON?`,
+            buttons: ['Yes', 'No']
+        }, res => {
+            if (res === 0)
+                setMainVariable(undefined)
+            else ipcRenderer.send('convert-to-js-object')
+        })
+})
+
+ipcRenderer.on('convert-to-js-object', (e) => {
+    console.log('hi')
+    if (mainVariable) 
+        dialog.showMessageBox({
+            type: 'warning',
+            message: `To convert to a Javascript object, you must define a variable and the data will no longer be compatible with functions like JSON.parse(). Are you sure you want to convert to a Javascript object?`,
+            buttons: ['Yes', 'No']
+        }, res => {
+            if (res === 0)
+                ipcRenderer.send('open-settings')
+            else ipcRenderer.send('convert-to-json')
+        })
+})
+
+ipcRenderer.on('request-settings-data', () => {
+    const settings = {
+        mainVariable,
+        key0
+    }
+    ipcRenderer.send('settings-data', settings)
+})
+
+ipcRenderer.on('change-main-variable', (e, value) => {
+    setMainVariable(value)
+})
+
+ipcRenderer.on('change-key-0', (e, value) => {
+    key0 = value
 })

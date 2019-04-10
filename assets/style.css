@@ -1,3 +1,33 @@
+body {
+    padding-bottom: 2em;
+    background: #f5f5f5;
+}
+
+.header {
+    background: #f5f5f5;
+    color: #404040;
+    border-bottom: 2px solid white;
+    width: 100%;
+    padding: 1em 3em;
+    transition: .3s;
+}
+
+.small-header {
+    left: 0;
+    min-width: 100%;
+    border-bottom: 2px solid #404040;
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
+.small-header .display-4 {
+    font-size: 2em;
+}
+
+.small-header h6 {
+    font-size: .8em;
+}
+
 .btn-danger {
     display: block;
     margin: auto;
@@ -10,14 +40,51 @@
 
 table {
     border: none;
+    margin-left: 2.5%;
+    margin-right: 2.5%;
+    margin-bottom: 1em;
+    padding-top: 3em;
+    overflow-x: auto;
+    table-layout: auto;
+}
+
+tbody {
+    background: white;
+}
+
+th, td {
+    border-style: solid;
+    border-color:#dadada;
+    border-width: 1px .5px;
+    padding: .5em;
+    min-width: 10em;
+    white-space: pre-line;
+}
+
+th:focus, td:focus {
+    outline-color: #49adff;
+}
+
+th {
+    border: none;
+    text-align: center;
+}
+
+thead {
+    border-bottom: 3px solid #dadada;
 }
 
 tr td:last-of-type, tr td:nth-last-child(2), tr:not(:first-of-type) th:last-of-type, tr:first-of-type th { 
     border: none;
 }
 
+tr td:nth-last-child(2) {
+    min-width: 0;
+}
+
 tr td:last-of-type {
     cursor: pointer;
+    padding-left: 1em;
 }
 
 tr td:last-of-type:hover {

@@ -8,9 +8,9 @@ let fileName
 
 let mainWindow
 let previewWin
+let settingsWin
 
 function createWindow () {
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -19,27 +19,17 @@ function createWindow () {
     }
   })
 
-  // and load the index.html of the app.
   mainWindow.loadFile('index.html')
 
   mainWindow.webContents.on('dom-ready', () => {
     mainWindow.send('reload-data', jsonData, fileName)
   })
-
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
-
-  // Emitted when the window is closed.
   mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
     mainWindow = null
   })
 }
 
 function openPreviewWin () {
-  // Create the browser window.
   previewWin = new BrowserWindow({
     width: 800,
     height: 600,
@@ -59,22 +49,51 @@ function openPreviewWin () {
   const previewMenu = Menu.buildFromTemplate([{ role: 'reload' }])
   previewWin.setMenu(previewMenu)
 
-  // and load the index.html of the app.
   previewWin.loadFile('./views/previewWin.html')
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
-  // Emitted when the window is closed.
   previewWin.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
     previewWin = null
+  })
+}
+
+function openSettingsWin () {
+  settingsWin = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+
+  settingsWin.webContents.on('dom-ready', () => {
+    mainWindow.send('request-settings-data')
+  })
+
+  const settingsMenu =  Menu.buildFromTemplate([
+    { 
+    label: 'Preview JSON',
+    accelerator: 'CommandOrControl+shift+p',
+    click() {
+      previewWin ? previewWin.focus() : openPreviewWin();
+    }
+   }
+  ])
+
+  settingsWin.setMenu(settingsMenu)
+
+  settingsWin.loadFile('./views/settingsWin.html')
+
+  settingsWin.on('closed', function () {
+    settingsWin = null
   })
 }
 
 ipcMain.on('json-data', (e, jsonData) => {
   previewWin.send('json-data', jsonData);
+})
+
+ipcMain.on('settings-data', (e, settings) => {
+  settingsWin.send('settings-data', settings)
 })
 
 const template = [
@@ -130,6 +149,20 @@ const template = [
           mainWindow.send('paste-table')
         }
       },
+      { type: 'separator'},
+      { 
+        label: 'Add Row',
+        click() {
+          mainWindow.send('new-row')
+        }
+      },
+      {
+        label: 'Add Column',
+        click() {
+          mainWindow.send('new-col')
+        }
+      },
+      { type: 'separator'},
       { role: 'delete' },
       { role: 'selectall' }
     ]
@@ -139,16 +172,31 @@ const template = [
     submenu: [
       { 
         type: 'radio',
+        id: 'convert-to-js-object',
         label: 'Convert to Javascript Object',
-        checked: true
+        checked: true,
+        click(menuItem) {
+          mainWindow.send('convert-to-js-object')
+          console.log(menuItem.checked, menuItem.id)
+        }
        },
       { 
         type: 'radio',
+        id: 'convert-to-json',
         label: 'Convert to JSON',
-        checked: false
+        checked: false,
+        click(menuItem) {
+          mainWindow.webContents.send('convert-to-json')
+          console.log(menuItem.checked, menuItem.id)
+        }
        },
        { type: 'separator' },
-       { label: 'More Settings' }
+       { 
+         label: 'More Settings',
+         click() {
+           openSettingsWin()
+         }
+        }
     ]
   },
   {
@@ -241,6 +289,14 @@ app.on('open-file', (e) => {
 ipcMain.on('reload-data', (e, data, name) => {
   jsonData = data;
   fileName = name;
+})
+
+ipcMain.on('convert-to-js-object', () => {
+  menu.getMenuItemById('convert-to-js-object').checked = true;
+})
+
+ipcMain.on('convert-to-json', () => {
+  menu.getMenuItemById('convert-to-json').checked = true;
 })
 
 // This method will be called when Electron has finished

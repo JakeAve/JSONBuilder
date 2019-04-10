@@ -11,16 +11,27 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:300" rel="stylesheet">
     <link rel="stylesheet" href="../assets/style.css">
 </head>
-<body class="black-bod">
-    <pre><code id="code-display">
+<body>
+    <select id="variable-type">
+        <option value="const">const</option>
+        <option value="let">let</option>
+        <option value="var">var</option>
+    </select>
+    <input id="variable-name" placeholder="main variable">
+    <input id="key0" placeholder="Array Key">
 
-        </code>
-    </pre>
     <script>
         const { ipcRenderer } = require('electron')
-        ipcRenderer.on('json-data', (e, jsonData) => {
-            document.querySelector('#code-display').innerHTML = jsonData;
+        ipcRenderer.on('settings-data', (e, settings) => {
+            const variableParts = settings.mainVariable.split(' ')
+            document.querySelector('#variable-type').value = variableParts[0];
+            document.querySelector('#variable-name').value = variableParts[1];
+            document.querySelector('#key0').value = settings.key0;
         })
+
+        function saveSettings() {
+            ipcRenderer.send('update-settingsk-data', settings)
+        }
     </script>
 </body>
 </html>

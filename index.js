@@ -2,6 +2,16 @@
 document.querySelector('#save-updates').addEventListener('click', () => {
     document.querySelector('#file-path').innerHTML === '' ? saveAs() : saveFile();
 });*/
+const header = document.querySelector('.header');
+const table = document.querySelector('TABLE');
+document.addEventListener('scroll', () => {
+  if (header.getBoundingClientRect().bottom > table.getBoundingClientRect().top)
+    header.classList.add('small-header')
+  else header.classList.remove('small-header')
+}, {
+  capture: true,
+  passive: true
+})
 
 function addNewRow(content = []) {
     const rows = document.querySelector('TABLE').querySelectorAll('TR');
@@ -9,8 +19,8 @@ function addNewRow(content = []) {
     const newRow = document.createElement('TR');
     for (let i = 0; i < numberOfCols; i ++)
         newRow.innerHTML += `<td contenteditable>${content.length === 0 ? `Col${i + 1} Row${rows.length - 1}` : content[i]}</td>`;
-        newRow.innerHTML += `<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);">X</button></td>`
-    newRow.innerHTML += `<td onmousedown="dragRow(this);"><div class="row-number">${rows.length - 1}</div><i class="fas fa-ellipsis-v"></i></td>`;
+        newRow.innerHTML += `<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);" title="Delete row">X</button></td>`
+    newRow.innerHTML += `<td onmousedown="dragRow(this);" title="Move row"><div class="row-number">${rows.length - 1}</div><i class="fas fa-ellipsis-v"></i></td>`;
     document.querySelector('TBODY').appendChild(newRow);
 };
 
@@ -24,11 +34,11 @@ function addNewCol(content = '') {
     rows.forEach((row, index) => {
         const newCell = index === 1 || index === 0 ? document.createElement('TH') : document.createElement('TD');
         if (index === 0) {
-            newCell.innerHTML = `<button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);">X</button>`;
+            newCell.innerHTML = `<button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);" title="Delete column">X</button>`;
         }
         else {
             newCell.contentEditable = true;
-            newCell.innerHTML = content === '' ? `Col${numberOfCols} Row${index - 1}` : content;
+            newCell.innerHTML = content === '' ? `Col${numberOfCols + 1} Row${index - 1}` : content;
         }
         row.children[numberOfCols - 1].insertAdjacentElement('afterend', newCell);
     })

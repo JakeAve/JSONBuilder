@@ -11,9 +11,11 @@
 </head>
 
 <body>
-  <h1 id="file-name" class="display-1"></h1>
-  <h5 id="file-path" placeholder="File path"></h5>
-  <table id="main-table" class="table table-bordered ">
+  <div class="header sticky-top">
+    <h5 id="file-name" class="display-4"></h5>
+    <h6 id="file-path" placeholder="File path"></h6>
+  </div>
+  <table id="main-table" class="">
     <thead>
       <tr>
         <!--
@@ -32,7 +34,7 @@
           <th scope="col" contenteditable>Summary</th>
           <th scope="col" contenteditable>Note</th>
         -->
-        <th id="first-header" scope="col" contenteditable>First Header</th>
+        <th id="first-header" scope="col" contenteditable></th>
         <th colspan="2" rowspan="2"></th>
       </tr>
     </thead>
@@ -65,8 +67,8 @@
       -->
     </tbody>
   </table>
-  <button id="add-new-row" type="button" class="btn btn-primary btn-lg btn-block">+</button>
-  <button id="add-new-col" type="button" class="btn btn-primary btn-lg btn-block">+</button>
+  <button id="add-new-row" type="button" class="btn btn-primary btn-lg btn-block">Add Row</button>
+  <button id="add-new-col" type="button" class="btn btn-primary btn-lg btn-block">Add Column</button>
 
   <script src="index.js"></script>
   <script>
