@@ -79,7 +79,7 @@ function convertToArray(table) {
     const rows = Array.from(table.querySelector('TBODY').querySelectorAll('TR'));
     function JSONObject(keys, values) {
         keys.slice(0, keys.length - 1).forEach((key, index, arr) => {
-            this[key.innerHTML] = values[index].innerHTML;
+            this[key.innerHTML] = values[index].textContent;
         })
     }
     return rows.map(row => new JSONObject(headers, Array.from(row.querySelectorAll('TH, TD'))));
@@ -99,7 +99,11 @@ function convertToJSON() {
 function pasteTable() {
     navigator.clipboard.readText()
         .then(clipText => {
-            const rows = clipText.split('\n');
+            //this is for when excel files contain linebreaks within a cell
+            const newString = clipText.replace(/([\t\n])("[\s\S]+?")/g, (matchedString, firstGroup, secondGroup) => {
+                return firstGroup + secondGroup.replace(/"/g, '').replace(/\n/g, '\r')
+            })
+            const rows = newString.split('\n');
             rows.pop();
             const pasteCols = rows[0].split('\t').length;
             const existingCols = document.querySelector('TABLE').querySelector('TR').querySelectorAll('TH').length;
@@ -121,16 +125,29 @@ function insertTable(rows, pasteCols, existingCols) {
     if (pasteCols > existingCols)
         for (let i = 0; i < pasteCols - existingCols; i ++)
             addNewCol();
-    function addBlank(number) {
-        let repeatedString = '';
-        while (number > 0) {
-          repeatedString += '<td contenteditable></td>';
-          number--;
+    //makes sure all the pasted rows are the same length as pasteCols
+    rows.forEach(row => {
+        const cells = row.split('\t').map(cell => {
+            return cell.trim()
+        });
+        if (cells.length === pasteCols) {
+            //console.log('Equal')
+            addNewRow(cells);
+        } else if (cells.length > pasteCols) {
+            let modifiedCells = [];
+            while (cells.length > pasteCols) {
+                modifiedCells.push(cells.splice(0, pasteCols));
+            }
+            modifiedCells.forEach(arr => addNewRow(arr))
+            //console.log('cells is greater than paste cols', modifiedCells)
+        } else if (cells.length < pasteCols) {
+            while (cells.length < pasteCols) {
+                cells.push('')
+            }
+            addNewRow(cells)
+            //console.log('cells is less than paste cols', cells)
         }
-        return repeatedString;
-    }
-    const tableText = rows.map(row => `<tr draggable="true">\n\t<td contenteditable>${row.replace(/\t/g, '</td>\n\t<td contenteditable>')}</td>\n\t${addBlank(existingCols - pasteCols)}<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);" title="Delete row">X</button></td>\n\t<td onmousedown="highlightRow(this);"><div class="row-number"></div><i class="fas fa-ellipsis-v"></i></td>\n</tr>`).join('\n');
-    document.querySelector('TBODY').innerHTML += tableText;
+    })
 }
 
 function createTable(obj, objKeys, innerObjKeys) {
@@ -195,7 +212,7 @@ function openFile() {
         (res => {
             if (res) {
                 const fileName = res.toString();
-                console.log('selected file', res)
+                //console.log('selected file', res)
                 setFileName(fileName);
                 const data = fs.readFileSync(fileName, 'utf8');
                 compileDataForTable(data);
@@ -209,7 +226,6 @@ function saveFile() {
         fs.writeFileSync(documentFilePath, convertToJSON(), err => {
             if (err)
                 showError(err)
-            console.log('saving', convertToJSON());
             })
     else saveAs();
 }
@@ -314,7 +330,7 @@ ipcRenderer.on('reload-data', (e, jsonData, fileName) => {
 //ipcRenderer.on('convert-to-js-object')
 
 ipcRenderer.on('convert-to-json', (e) => {
-    console.log('hi')
+    //console.log('hi')
     if (mainVariable) 
         dialog.showMessageBox({
             type: 'warning',
@@ -328,7 +344,6 @@ ipcRenderer.on('convert-to-json', (e) => {
 })
 
 ipcRenderer.on('convert-to-js-object', (e) => {
-    console.log('hi')
     if (!mainVariable) 
         dialog.showMessageBox({
             type: 'warning',
@@ -346,7 +361,6 @@ ipcRenderer.on('request-settings-data', () => {
         mainVariable,
         key0
     }
-    console.log(settings)
     ipcRenderer.send('settings-data', settings)
 })
 
