@@ -85,9 +85,8 @@ const template = [
         id: 'convert-to-js-object',
         label: 'Format as Javascript Object',
         checked: true,
-        click(menuItem) {
+        click() {
           mainWindow.webContents.send('convert-to-js-object')
-          console.log(menuItem.checked, menuItem.id)
         }
        },
       { 
@@ -95,9 +94,8 @@ const template = [
         id: 'convert-to-json',
         label: 'Format as JSON',
         checked: false,
-        click(menuItem) {
+        click() {
           mainWindow.webContents.send('convert-to-json')
-          console.log(menuItem.checked, menuItem.id)
         }
        },
        { type: 'separator' },
