@@ -1,15 +1,22 @@
 const { remote, ipcRenderer } = require('electron')
 const { dialog } = remote
 let currentSettings
+const varNameInput = document.querySelector('#variable-name');
 ipcRenderer.on('settings-data', (e, settings) => {
     if (settings.mainVariable) {
         const variableParts = settings.mainVariable.split(' ')
         document.querySelector('#variable-type').value = variableParts[0];
-        document.querySelector('#variable-name').value = variableParts[1];
+        varNameInput.value = variableParts[1];
+    } else {
+        varNameInput.disabled = true;
     }
     if (settings.key0) 
         document.querySelector('#key0').value = settings.key0;
     currentSettings = settings;
+})
+
+document.querySelector('#variable-type').addEventListener('change', (e) => {
+    e.target.value === 'undefined' ? varNameInput.disabled = true : varNameInput.disabled = false
 })
 
 document.querySelector('FORM').addEventListener('submit', (e) => {
@@ -36,9 +43,6 @@ document.querySelector('FORM').addEventListener('submit', (e) => {
                 saveSettings(newSettings)
             })
     } else saveSettings(newSettings)
-
-    console.log(newSettings)
-    
 })
 
 function saveSettings(settings) {
@@ -49,7 +53,7 @@ function confirmJSON(value) {
     return new Promise((resolve) => {
         dialog.showMessageBox({
             type: 'warning',
-            message: `This document currently begins with a variable "${settings.mainVariable}" and you have not created a new one. The variable will be deleted and the document will be converted to JSON. Are you sure you want to convert to JSON?`,
+            message: `This document currently begins with a variable "${currentSettings.mainVariable}" and you have not created a new one. The variable will be deleted and the document will be converted to JSON. Are you sure you want to convert to JSON?`,
             buttons: ['Yes', 'No']
         }, res => {
             if (res === 0)

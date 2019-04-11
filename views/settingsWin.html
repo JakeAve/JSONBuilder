@@ -13,15 +13,19 @@
 </head>
 <body>
     <form>
-        <select id="variable-type" name="variable-type">
-            <option value="undefined">no variable</option>
-            <option value="const">const</option>
-            <option value="let">let</option>
-            <option value="var">var</option>
-        </select>
-        <input id="variable-name" name="variable-name" placeholder="main variable">
-        <input id="key0" name="key0" placeholder="Array Key">
-        <button type="submit">Save Settings</button>
+        <div class="form-group">
+            <label for="variable-type" class="colFormLabel">Variable</label>
+            <select id="variable-type" name="variable-type" class="form-control">
+                <option value="undefined">no variable</option>
+                <option value="const">const</option>
+                <option value="let">let</option>
+                <option value="var">var</option>
+            </select>
+        </div>
+        <input id="variable-name" name="variable-name" placeholder="main variable" class="form-control">
+        <label class="colFormLabel">Array Key</label>
+        <input id="key0" name="key0" placeholder="Array Key" class="form-control">
+        <button type="submit" class="btn btn-primary">Save Settings</button>
     </form>
     <script src="settingsWin.js"></script>
 </body>

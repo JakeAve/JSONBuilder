@@ -115,3 +115,11 @@ tr td:last-of-type:hover {
     font-family: 'Roboto Mono', monospace;
 }
 
+form {
+    margin: 1em 2em;
+}
+
+button[type="submit"] {
+    display: block;
+    margin: 1em auto;
+}

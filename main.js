@@ -257,8 +257,8 @@ function openPreviewWin () {
 
 function openSettingsWin () {
   settingsWin = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 300,
+    height: 400,
     webPreferences: {
       nodeIntegration: true
     }
@@ -270,7 +270,8 @@ function openSettingsWin () {
 
   const settingsMenu =  Menu.buildFromTemplate([
     menu.getMenuItemById('preview'),
-    menu.getMenuItemById('open-in-file-explorer')
+    menu.getMenuItemById('open-in-file-explorer'),
+    { role: 'toggledevtools' }
   ])
 
   settingsWin.setMenu(settingsMenu)
@@ -292,6 +293,7 @@ ipcMain.on('settings-data', (e, settings) => {
 
 ipcMain.on('update-settings-data', (e, settings) => {
   mainWindow.send('update-settings-data', settings)
+  settingsWin.close()
 })
 
 app.on('open-file', (e) => {
