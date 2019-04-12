@@ -1,9 +1,12 @@
 Pending:
 -sort table
--settings to change the key 0 and mainvariable
 -make table array
--open in text editor
+-jump to point
+-undo and redo table
+-ctrl find
 
 Done:
+-open in file explorer
+-settings to change the key 0 and mainvariable
 -save as when no file is there
 -keep all data on reload

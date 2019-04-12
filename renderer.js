@@ -21,7 +21,8 @@ menu.append(new MenuItem({
 }))
 menu.append(new MenuItem({ type: 'separator' }))
 menu.append(new MenuItem({ 
-    label: 'Add Row',
+    label: 'Insert Row',
+    id: 'insert-row',
     click() {
         addNewRow()
     }
@@ -32,6 +33,7 @@ menu.append(new MenuItem({
         addNewCol()
     }
 }))
+menu.append(new MenuItem({ type: 'separator' }))
 menu.append(new MenuItem({
     label: 'Open in default editor',
     click() {
@@ -41,6 +43,10 @@ menu.append(new MenuItem({
 
 window.addEventListener('contextmenu', (e) => {
   e.preventDefault()
+  if (document.querySelector('TBODY').contains(e.target)) {
+      const row = e.target.closest('TR');
+      menu.getMenuItemById('insert-row').click = null;
+  }
   menu.popup({ window: remote.getCurrentWindow() })
 }, false)
 
@@ -79,7 +85,7 @@ function convertToArray(table) {
     const rows = Array.from(table.querySelector('TBODY').querySelectorAll('TR'));
     function JSONObject(keys, values) {
         keys.slice(0, keys.length - 1).forEach((key, index, arr) => {
-            this[key.innerHTML] = values[index].textContent;
+            this[key.innerHTML] = values[index].innerHTML;
         })
     }
     return rows.map(row => new JSONObject(headers, Array.from(row.querySelectorAll('TH, TD'))));
@@ -94,6 +100,14 @@ function convertToJSON() {
     if (mainVariable)
         return mainVariable + ' ' + jsonData;
     else return jsonData
+}
+
+document.querySelector('TBODY').addEventListener('paste', handlePaste);
+
+function handlePaste(e) {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain')
+    document.execCommand('insertHTML', false, text);
 }
 
 function pasteTable() {
@@ -128,7 +142,7 @@ function insertTable(rows, pasteCols, existingCols) {
     //makes sure all the pasted rows are the same length as pasteCols
     rows.forEach(row => {
         const cells = row.split('\t').map(cell => {
-            return cell.trim()
+            return cell.replace(/\r/g, '\n').trim()
         });
         if (cells.length === pasteCols) {
             //console.log('Equal')
@@ -153,7 +167,7 @@ function insertTable(rows, pasteCols, existingCols) {
 function createTable(obj, objKeys, innerObjKeys) {
     document.querySelector('THEAD').querySelector('TR').innerHTML = `<th><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteCol(this);" title="Delete table">X</button></th>`;
 
-    document.querySelector('THEAD').querySelector('TR:last-of-type').innerHTML = `<th id="first-header" scope="col" contenteditable>${innerObjKeys[0]}</th>\n<th colspan="2" rowspan="2"></th>`;
+    document.querySelector('THEAD').querySelector('TR:last-of-type').innerHTML = `<th id="first-header" scope="col" contenteditable>${innerObjKeys[0]}</th>\n<th colspan="2" rowspan="2">Delete/Move Row</th>`;
 
     const rows = document.querySelector('TBODY').querySelectorAll('TR');
 
@@ -168,7 +182,6 @@ function createTable(obj, objKeys, innerObjKeys) {
         arr = innerObjKeys.map(key => obj[row][key]);
         addNewRow(arr);
     })
-
 };
 
 function compileDataForTable(data) {

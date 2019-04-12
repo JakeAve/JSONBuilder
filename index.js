@@ -21,7 +21,7 @@ function addNewRow(content = []) {
       newRow.innerHTML += `<td contenteditable>${content.length === 0 ? `Col${i + 1} Row${rows.length - 1}` : content[i]}</td>`;
     newRow.innerHTML += `<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);" title="Delete row">X</button></td>`
     newRow.innerHTML += `<td onmousedown="dragRow(this);" title="Move row"><div class="row-number">${rows.length - 1}</div><i class="fas fa-ellipsis-v"></i></td>`;
-    document.querySelector('TBODY').appendChild(newRow);
+    arguments[1] ?  arguments[1].insertAdjacentElement('beforebegin', newRow) : document.querySelector('TBODY').appendChild(newRow);
 };
 
 document.querySelector('#add-new-row').addEventListener('click', () => {
@@ -104,21 +104,25 @@ function dragRow(btn) {
   const movingRow = btn.parentElement;
   const rowIndex = Array.from(tableBody.querySelectorAll('TR')).indexOf(movingRow);
   movingRow.draggable = true;
+  movingRow.classList.add('highlight-row');
+
   movingRow.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData("text/plain", rowIndex);
   });
-  movingRow.classList.add('highlight-row');
-  
-  movingRow.addEventListener('dragend', (e) => {
-    let index = 0;
-    for (let i  of document.querySelectorAll('TR')) {
-      i.classList.remove('bottom-row-insert');
-      i.classList.remove('highlight-row');
-      i.querySelector('.row-number') ? i.querySelector('.row-number').innerHTML = ++ index : null;
-    }
-    movingRow.draggable = false;
-  });
+  btn.addEventListener('mouseup', () => {finishRowMove(movingRow)});
+  movingRow.addEventListener('dragend', () => {finishRowMove(movingRow)});
 };
+
+function finishRowMove(movingRow) {
+  let index = 0;
+  for (let i  of document.querySelectorAll('TR')) {
+    i.classList.remove('bottom-row-insert');
+    i.classList.remove('highlight-row');
+    i.querySelector('.row-number') ? i.querySelector('.row-number').innerHTML = ++ index : null;
+  }
+  movingRow.draggable = false;
+};
+
 
 //Add drag and drop listeners to body and header
 var tableBody = document.querySelector('TBODY');
@@ -140,7 +144,6 @@ var tHead1 = document.querySelector('THEAD').querySelector('TR:last-of-type');
       e.target.closest('TR').insertAdjacentElement('afterend', tableBody.querySelectorAll('TR')[rowIndex]);
     else tableBody.insertAdjacentElement('afterbegin', tableBody.querySelectorAll('TR')[rowIndex]);
   });
-
 })
 
 

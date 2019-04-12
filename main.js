@@ -51,7 +51,6 @@ const template = [
       { role: 'cut' },
       { role: 'copy' },
       { role: 'paste' },
-      { role: 'pasteandmatchstyle' },
       {
         label: 'Paste Table',
         accelerator: 'CommandOrControl+t',

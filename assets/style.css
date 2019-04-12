@@ -1,10 +1,10 @@
 body {
     padding-bottom: 2em;
-    background: #f5f5f5;
+    background: #e8e8e8;
 }
 
 .header {
-    background: #f5f5f5;
+    background: #e8e8e8;
     color: #404040;
     border-bottom: 2px solid transparent;
     width: 100%;
@@ -43,7 +43,6 @@ table {
     margin-left: 2.5%;
     margin-right: 2.5%;
     margin-bottom: 1em;
-    padding-top: 3em;
     overflow-x: auto;
     table-layout: auto;
 }
@@ -74,6 +73,14 @@ thead {
     border-bottom: 3px solid #dadada;
 }
 
+thead tr:last-of-type {
+    background: white;
+}
+
+thead tr:last-of-type th {
+    padding: 1em;
+}
+
 tr td:last-of-type, tr td:nth-last-child(2), tr:not(:first-of-type) th:last-of-type, tr:first-of-type th { 
     border: none;
 }
@@ -83,8 +90,8 @@ tr td:nth-last-child(2) {
 }
 
 tr td:last-of-type {
-    cursor: pointer;
-    padding-left: 1em;
+    cursor: grab;
+    text-align: center;
 }
 
 tr td:last-of-type:hover {
@@ -93,6 +100,10 @@ tr td:last-of-type:hover {
 
 .highlight-row {
     opacity: .5;
+    cursor: grabbing;
+}
+
+.highlight-row td:last-of-type {
     cursor: grabbing;
 }
 
