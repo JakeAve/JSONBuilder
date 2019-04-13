@@ -18,7 +18,7 @@ function addNewRow(content = []) {
     const numberOfCols = rows[0].querySelectorAll('TH').length;
     const newRow = document.createElement('TR');
     for (let i = 0; i < numberOfCols; i ++)
-      newRow.innerHTML += `<td contenteditable>${content.length === 0 ? `Col${i + 1} Row${rows.length - 1}` : content[i]}</td>`;
+      newRow.innerHTML += `<td contenteditable>${!content.length ? `Col${i + 1} Row${rows.length - 1}` : content[i]}</td>`;
     newRow.innerHTML += `<td><button type="button" class="btn btn-danger" tabindex="-1" onclick="deleteRow(this);" title="Delete row">X</button></td>`
     newRow.innerHTML += `<td onmousedown="dragRow(this);" title="Move row"><div class="row-number">${rows.length - 1}</div><i class="fas fa-ellipsis-v"></i></td>`;
     arguments[1] ?  arguments[1].insertAdjacentElement('beforebegin', newRow) : document.querySelector('TBODY').appendChild(newRow);
@@ -28,7 +28,7 @@ document.querySelector('#add-new-row').addEventListener('click', () => {
     addNewRow();
 });
 
-function addNewCol(content = '') {
+function addNewCol(content = []) {
     const rows = Array.from(document.querySelector('TABLE').querySelectorAll('TR'));
     const numberOfCols = rows[0].querySelectorAll('TH').length;
     rows.forEach((row, index) => {
@@ -38,7 +38,7 @@ function addNewCol(content = '') {
         }
         else {
             newCell.contentEditable = true;
-            newCell.innerHTML = content === '' ? `Col${numberOfCols + 1} Row${index - 1}` : content;
+            newCell.innerHTML = !content.length ? `Col${numberOfCols + 1} Row${index - 1}` : content[index];
         }
         row.children[numberOfCols - 1].insertAdjacentElement('afterend', newCell);
     })
@@ -76,6 +76,7 @@ function redoTableChange() {
 */
 function deleteRow(deleteBtn) {
     deleteBtn.parentElement.parentElement.remove();
+    finishRowChange();
   };
 
 function deleteCol(deleteBtn) {
@@ -110,17 +111,17 @@ function dragRow(btn) {
     e.dataTransfer.setData("text/plain", rowIndex);
   });
   btn.addEventListener('mouseup', () => {finishRowMove(movingRow)});
-  movingRow.addEventListener('dragend', () => {finishRowMove(movingRow)});
+  movingRow.addEventListener('dragend', () => {finishRowChange(movingRow)});
 };
 
-function finishRowMove(movingRow) {
+function finishRowChange(movingRow) {
   let index = 0;
   for (let i  of document.querySelectorAll('TR')) {
     i.classList.remove('bottom-row-insert');
     i.classList.remove('highlight-row');
     i.querySelector('.row-number') ? i.querySelector('.row-number').innerHTML = ++ index : null;
   }
-  movingRow.draggable = false;
+  movingRow ? movingRow.draggable = false : null;
 };
 
 

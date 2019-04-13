@@ -3,68 +3,90 @@
 // All of the Node.js APIs are available in this process.
 
 const { remote, ipcRenderer, shell } = require('electron')
-const { Menu, MenuItem, dialog } = remote
+const { Menu, dialog } = remote
 const fs = remote.require('fs')
 
+let contextTemplate = [
+    { role: 'copy' },
+    { role: 'paste' },
+    {
+        label: 'Paste Table',
+        accelerator: 'commandOrControl + T',
+        click() {
+            pasteTable()
+        }
+    },
+    { type: 'separator' },
+    { 
+        label: 'Insert Row',
+        id: 'insert-row',
+        visible: false,
+        click() {
 
+        }
+     },
+     { 
+        label: 'Add Row',
+        click() {
+            addNewRow()
+        }
+    },
+    { 
+        label: 'Add Column',
+        click() {
+            addNewCol()
+        }
+    },
+    { type: 'separator' },
+    {
+        label: 'Undo Table Change',
+        click() {
+            
+        }
+    },
+    {
+        label: 'Redo Table Change',
+        click() {
 
-const menu = new Menu()
-menu.append(new MenuItem({ label: 'Undo Table Change', click() { undoTableChange() } }))
-menu.append(new MenuItem({ label: 'Redo Table Change', click() { redoTableChange() } }))
-menu.append(new MenuItem({ type: 'separator' }))
-menu.append(new MenuItem({ role: 'copy' }))
-menu.append(new MenuItem({ role: 'paste' }))
-menu.append(new MenuItem({ 
-    label: 'Paste Table',
-    accelerator: 'commandOrControl + T',
-    click() {pasteTable()}
-}))
-menu.append(new MenuItem({ type: 'separator' }))
-menu.append(new MenuItem({ 
-    label: 'Insert Row',
-    id: 'insert-row',
-    click() {
-        addNewRow()
+        }
+    },
+    {
+        label: 'Find',
+        accelerator: 'CommandOrControl+f',
+        click() {
+            showFind();
+        }
+    },
+    { type: 'separator' },
+    {
+        label: 'Open in default editor',
+        click() {
+            shell.openItem(documentFilePath)
+        }
     }
-}))
-menu.append(new MenuItem({ 
-    label: 'Add Column',
-    click() {
-        addNewCol()
-    }
-}))
-menu.append(new MenuItem({ type: 'separator' }))
-menu.append(new MenuItem({
-    label: 'Open in default editor',
-    click() {
-        shell.openItem(documentFilePath)
-    }
-}))
+]
 
 window.addEventListener('contextmenu', (e) => {
-  e.preventDefault()
-  if (document.querySelector('TBODY').contains(e.target)) {
-      const row = e.target.closest('TR');
-      menu.getMenuItemById('insert-row').click = null;
-  }
-  menu.popup({ window: remote.getCurrentWindow() })
-}, false)
-
-/*const currentDocument = {
-    mainVariable: undefined,
-    key0: undefined,
-    documentFilePath: undefined,
-    setFileName: (fullPath = 'No File Selected', name = 'New JSON') => {
-        document.querySelector('#file-path').innerHTML = fullPath;
-        document.querySelector('#file-name').innerHTML = fullPath.includes('\\') ? fullPath.slice(fullPath.lastIndexOf('\\') + 1, fullPath.lastIndexOf('.')) : name;
-        this.documentFilePath = fullPath.includes('\\') ? fullPath : undefined;
-    },
-    start: `[
-        {
-            "First Header": "First Item"
+    e.preventDefault()
+    if (document.querySelector('TBODY').contains(e.target)) {
+        const row = e.target.closest('TR');
+        contextTemplate[4] = {
+                label: 'Insert Row',
+                id: 'insert-row',
+                visible: true,
+                click() {
+                    addNewRow([], row)
+                    finishRowChange()
+                }
         }
-    ]`
-}*/
+    } else contextTemplate[4] = {
+            label: 'Insert Row',
+            id: 'insert-row',
+            visible: false
+    }
+    const contextMenu = Menu.buildFromTemplate(contextTemplate)
+    contextMenu.popup({ window: remote.getCurrentWindow() })
+}, false)
 
 let mainVariable;
 let key0;
@@ -185,11 +207,9 @@ function createTable(obj, objKeys, innerObjKeys) {
 };
 
 function compileDataForTable(data) {
-    //console.log(data)
     const equalSignPos = data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? data.indexOf('=') + 1 : 0;
     data.startsWith('const ') || data.startsWith('let ') || data.startsWith('var ') ? setMainVariable(data.slice(0, equalSignPos)) : setMainVariable(undefined);
     const JSONobj = data.slice(equalSignPos);
-    //const JSONobj = data;
     try {
         const parsedObj = JSON.parse(JSONobj);
         if (Array.isArray(parsedObj)) {
@@ -199,12 +219,9 @@ function compileDataForTable(data) {
             createTable(parsedObj, arrayIndexes, innerObjKeys);
         } else {
             const obj = Object.keys(parsedObj).length === 1 ? parsedObj[Object.keys(parsedObj)[0]] : parsedObj;
-            //console.log(Object.keys(parsedObj), Object.keys(parsedObj).length === 1, obj);
             Object.keys(parsedObj).length === 1 ? key0 = Object.keys(parsedObj)[0] : key0 = '';
             const objKeys = Object.keys(obj);
-            //console.log(objKeys);
             const innerObjKeys = Object.keys(obj[objKeys[0]]);
-            //console.log(innerObjKeys);
             createTable(obj, objKeys, innerObjKeys);
         }
     } catch(e) {
@@ -225,7 +242,6 @@ function openFile() {
         (res => {
             if (res) {
                 const fileName = res.toString();
-                //console.log('selected file', res)
                 setFileName(fileName);
                 const data = fs.readFileSync(fileName, 'utf8');
                 compileDataForTable(data);
@@ -304,13 +320,21 @@ function checkEverythingIsSaved(callback) {
         if (currentData === fileData) 
             callback()
         else saveFirstDialog(callback);
-
     } catch {
         if (convertToJSON() === starter)
             callback()
         else saveFirstDialog(callback);
     }
 }
+
+function showFind() {
+    document.querySelector('.find-container').classList.remove('hidden');
+}
+
+function findText() {
+    
+}
+
 
 window.onbeforeunload = (e) => {
     console.log('ran before unload')
