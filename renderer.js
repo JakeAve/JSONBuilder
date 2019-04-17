@@ -217,7 +217,6 @@ function compileDataForTable(data) {
             const arrayIndexes = Object.keys(parsedObj);
             const innerObjKeys = Object.keys(parsedObj[0]);
             key0 = '';
-            console.log(arrayIndexes, innerObjKeys);
             createTable(parsedObj, arrayIndexes, innerObjKeys);
         } else {
             const obj = Object.keys(parsedObj).length === 1 ? parsedObj[Object.keys(parsedObj)[0]] : parsedObj;
