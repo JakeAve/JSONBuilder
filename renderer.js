@@ -107,7 +107,8 @@ function convertToArray(table) {
     const rows = Array.from(table.querySelector('TBODY').querySelectorAll('TR'));
     function JSONObject(keys, values) {
         keys.slice(0, keys.length - 1).forEach((key, index, arr) => {
-            this[key.innerHTML] = values[index].innerHTML;
+            //this[key.innerHTML] = values[index].innerHTML;
+            this[key.textContent] = values[index].textContent;
         })
     }
     return rows.map(row => new JSONObject(headers, Array.from(row.querySelectorAll('TH, TD'))));
@@ -327,15 +328,6 @@ function checkEverythingIsSaved(callback) {
         else saveFirstDialog(callback);
     }
 }
-
-function showFind() {
-    document.querySelector('.find-container').classList.remove('hidden');
-}
-
-function findText() {
-
-}
-
 
 window.onbeforeunload = (e) => {
     console.log('ran before unload')

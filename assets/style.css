@@ -147,7 +147,13 @@ button[type="submit"] {
 
 .find-container input {
     border: none;
+}
+
+.find-container div {
+    display: inline-block;
+    padding-right: .5em;
     border-right: 1px solid #c0c0c0;
+    color: #404040;
 }
 
 .find-container input:focus {
@@ -162,4 +168,8 @@ button[type="submit"] {
 
 .find-container.hidden {
     top: calc(-100% - 2em)
+}
+
+mark {
+    background: yellow;
 }

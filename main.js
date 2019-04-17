@@ -127,6 +127,15 @@ const template = [
       },
       { type: 'separator' },
       {
+        label: 'Find',
+        id: 'find',
+        accelerator: 'CommandOrControl + f',
+        click() {
+          BrowserWindow.getFocusedWindow().send('find')
+        }
+      },
+      { type: 'separator' },
+      {
         role: 'reload',
         id: 'reload'
       },
