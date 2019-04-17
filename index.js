@@ -38,7 +38,7 @@ function addNewCol(content = []) {
         }
         else {
             newCell.contentEditable = true;
-            newCell.innerHTML = !content.length ? `Col${numberOfCols + 1} Row${index - 1}` : content[index];
+            newCell.innerHTML = !content.length && content[index - 1] ? `Col${numberOfCols + 1} Row${index - 1}` : content[index - 1];
         }
         row.children[numberOfCols - 1].insertAdjacentElement('afterend', newCell);
     })

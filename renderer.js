@@ -196,8 +196,9 @@ function createTable(obj, objKeys, innerObjKeys) {
     for (let row of rows)
         row.remove()
 
+    //I do not remember why you need to slice 1, but you do
     innerObjKeys.slice(1).forEach(item => {
-        addNewCol(item)
+        addNewCol([item])
     })
 
     objKeys.forEach(row => {
@@ -216,6 +217,7 @@ function compileDataForTable(data) {
             const arrayIndexes = Object.keys(parsedObj);
             const innerObjKeys = Object.keys(parsedObj[0]);
             key0 = '';
+            console.log(arrayIndexes, innerObjKeys);
             createTable(parsedObj, arrayIndexes, innerObjKeys);
         } else {
             const obj = Object.keys(parsedObj).length === 1 ? parsedObj[Object.keys(parsedObj)[0]] : parsedObj;
@@ -332,7 +334,7 @@ function showFind() {
 }
 
 function findText() {
-    
+
 }
 
 
