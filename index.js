@@ -110,7 +110,7 @@ function dragRow(btn) {
   movingRow.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData("text/plain", rowIndex);
   });
-  btn.addEventListener('mouseup', () => {finishRowMove(movingRow)});
+  btn.addEventListener('mouseup', () => {finishRowChange(movingRow)});
   movingRow.addEventListener('dragend', () => {finishRowChange(movingRow)});
 };
 
