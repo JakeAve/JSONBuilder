@@ -136,40 +136,54 @@ button[type="submit"] {
     margin: 1em auto;
 }
 
-.find-container {
+.find-bar {
     position: fixed;
     top: 1em;
     right: 5%;
-    background: white;
     padding: .5em;
+    width: 20em;
+    background: white;
+    display: grid;
+    grid-template-columns: 50% 25% calc(25%/3) calc(25%/3) calc(25%/3);
+    border-radius: 5px;
+    border: 1px solid #c0c0c0;
+    box-shadow: 5px 5px 25px -4px rgba(0,0,0,0.68);
     transition: .2s ease-in-out;
 }
 
-.find-container input {
+.find-bar input {
     border: none;
 }
 
-.find-container div {
-    display: inline-block;
-    padding-right: .5em;
-    border-right: 1px solid #c0c0c0;
-    color: #404040;
-}
-
-.find-container input:focus {
+.find-bar input:focus {
     outline: none;
 }
 
-.find-container button {
+.find-bar div {
+    font-size: .8em;
+    padding-right: .5em;
+    border-right: 1px solid #c0c0c0;
+    color: #404040;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.find-bar button {
     color: #404040;
     border: none;
     background: transparent;
+    font-weight: bold;
 }
 
-.find-container.hidden {
+.find-bar.hidden {
     top: calc(-100% - 2em)
 }
 
 mark {
     background: yellow;
+    padding: 0;
+}
+
+mark.selected-mark {
+    background: orange;
 }
