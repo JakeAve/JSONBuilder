@@ -1,5 +1,6 @@
 const { ipcRenderer } = require('electron')
 
+//make and append the html to the document body
 const findBar = document.createElement('div');
 findBar.classList.add('find-bar', 'hidden');
 findBar.innerHTML = `
@@ -18,8 +19,9 @@ function showFind() {
     findBar.querySelector('#find-input').select();
 }
 
-const allMatches = {
-    fullArray : [],
+//this object handles all the matches
+const matchesObj = {
+    fullArray : [], //each object in the array contains the element, index, el.getBoudingClientRect().top
 
     currentIndex : 0,
 
@@ -37,10 +39,9 @@ const allMatches = {
         const markTags = document.querySelector('table').querySelectorAll('mark');
         const elements = Array.from(markTags);
         if (elements.length) {
-            const matches = elements.map((el, index) => {
+            const matches = elements.map(el => {
                 return {
-                    ['element'] : el, 
-                    index, 
+                    ['element'] : el,
                     ['pos'] :el.getBoundingClientRect().top
                 }
             })
@@ -89,16 +90,17 @@ const allMatches = {
             this.selectedMatch.element.scrollIntoView();
             window.scrollBy(0, -100);
             this.selectedMatch.element.classList.add('selected-mark');
+            //handles taking away the '.selected-mark' class from the previously selected match
             this.earlierMatch ? this.earlierMatch.element.classList.remove('selected-mark') : null;
             this.earlierMatchIndex = this.currentIndex;
         }
         this.updateDisplay();
     },
 
-    resetFindBar : function () {
-        allMatches.fullArray = [];
-        allMatches.currentIndex = 0;
-        allMatches.updateDisplay();
+    resetFindBar : function () { //zeros out the find bar
+        this.fullArray = [];
+        this.currentIndex = 0;
+        this.updateDisplay();
     }
 }
 
@@ -115,9 +117,9 @@ function findText(value) {
         else  cell.innerHTML = cell.textContent.replace(/<\/?mark.*?>/g, '')
     }
     if (value) 
-        allMatches.getMatches();
+        matchesObj.getMatches();
     else 
-        allMatches.resetFindBar();
+        matchesObj.resetFindBar();
 }
 
 document.querySelector('#hide-find').addEventListener('click', () => {
@@ -130,26 +132,27 @@ document.querySelector('#find-input').addEventListener('keyup', (e) => {
     if (e.keyCode === 13 || e.keyCode === 16) { //ENTER or SHIFT
         onkeydown = onkeyup = (e) => {
             map[e.keyCode] = e.type == 'keydown';
-            /* insert conditional here */
-            if (map[13] && !map[16]) //ENTER
-                allMatches.nextMatch()
             if (map[13] && map[16]) //SHIFT + ENTER
-                allMatches.previousMatch()
-        } 
-    } else findText(e.target.value)
-
+                matchesObj.previousMatch()
+            else if (map[13]) //ENTER
+                //the first time you press ENTER, it doesn't work. But it works as expected every other time
+                matchesObj.nextMatch()
+        }
+    } else 
+        findText(e.target.value)
 })
 
 const arrowBtns = findBar.querySelectorAll('button:not(last-of-type)');
 
 arrowBtns[0].addEventListener('click', () => {
-    allMatches.previousMatch()
+    matchesObj.previousMatch()
 })
 
 arrowBtns[1].addEventListener('click', () => {
-    allMatches.nextMatch()
+    matchesObj.nextMatch()
 })
 
+//the event is triggered in the main process
 ipcRenderer.on('find', showFind);
 
 document.addEventListener('dom-ready', () => {
