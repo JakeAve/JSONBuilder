@@ -9,7 +9,8 @@
     "dist": "build"
   },
   "build": {
-    "appId": "jsonbuilder",
+    "appId": "com.electron.jsonbuilder",
+    "productName": "JSON Builder",
     "dmg": {
       "contents": [
         {
@@ -33,6 +34,11 @@
     "win": {
       "target": "NSIS",
       "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "runAfterFinish": true
     }
   },
   "repository": "https://github.com/JakeAve/JSONBuilder.git",
