@@ -1,19 +1,51 @@
 {
   "name": "json-builder",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Build a JSON file from a table",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "build --dir",
+    "dist": "build"
+  },
+  "build": {
+    "appId": "jsonbuilder",
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "NSIS",
+      "icon": "assets/icon.ico"
+    }
   },
   "repository": "https://github.com/JakeAve/JSONBuilder.git",
   "keywords": [],
   "author": "Jacob Avery",
   "devDependencies": {
-    "electron": "^4.1.3"
+    "electron": "^4.1.3",
+    "electron-builder": "^20.39.0"
   },
   "dependencies": {
     "bootstrap": "^4.3.1",
-    "npm": "^6.9.0"
+    "jquery": "^3.4.0",
+    "npm": "^6.9.0",
+    "popper.js": "^1.15.0"
   }
 }
