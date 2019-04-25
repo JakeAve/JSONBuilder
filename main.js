@@ -70,10 +70,7 @@ const template = [
         click() {
           mainWindow.send('new-col')
         }
-      },
-      { type: 'separator'},
-      { role: 'delete' },
-      { role: 'selectall' }
+      }
     ]
   },
   {
@@ -150,13 +147,6 @@ const template = [
     ]
   },
   {
-    role: 'window',
-    submenu: [
-      { role: 'minimize' },
-      { role: 'close' }
-    ]
-  },
-  {
     role: 'help',
     submenu: [
       {
@@ -220,8 +210,8 @@ function createWindow () {
       nodeIntegration: true
     }
   })
-
-  mainWindow.loadFile('index.html')
+  mainWindow.setTitle('JSON Builder')
+  mainWindow.loadFile('./windows/index.html')
 
   mainWindow.webContents.on('dom-ready', () => {
     mainWindow.send('reload-data', jsonData, fileName)
@@ -254,7 +244,7 @@ function openPreviewWin () {
   ])
   previewWin.setMenu(previewMenu)
 
-  previewWin.loadFile('./views/previewWin.html')
+  previewWin.loadFile('./windows/previewWin.html')
 
   previewWin.on('closed', function () {
     previewWin = null
@@ -282,7 +272,7 @@ function openSettingsWin () {
 
   settingsWin.setMenu(settingsMenu)
 
-  settingsWin.loadFile('./views/settingsWin.html')
+  settingsWin.loadFile('./windows/settingsWin.html')
 
   settingsWin.on('closed', function () {
     settingsWin = null
