@@ -45,7 +45,7 @@
   "keywords": [],
   "author": "Jacob Avery",
   "devDependencies": {
-    "electron": "^4.1.3",
+    "electron": "^11.5.0",
     "electron-builder": "^20.39.0"
   },
   "dependencies": {
